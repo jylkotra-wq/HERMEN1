@@ -538,21 +538,6 @@ export default function App() {
                 </div>
                 
                 <div className="space-y-16 max-w-2xl mx-auto">
-                  <div className="space-y-6">
-                    <p className="text-lg text-brand-primary/70 leading-relaxed">
-                      HERMEN은 'Hermetic(밀폐된, 연금술의)'과 'Men(사람들)'의 합성어로, 
-                      가장 순수한 성분을 가장 완벽한 상태로 피부에 전달하고자 하는 
-                      우리의 의지를 담고 있습니다.
-                    </p>
-                    <p className="text-sm text-brand-primary/50 leading-relaxed">
-                      우리는 불필요한 성분은 덜어내고, 피부가 진정으로 필요로 하는 
-                      핵심 성분에 집중합니다. 수천 번의 테스트와 정교한 포뮬러 설계를 통해 
-                      당신의 피부가 스스로 건강해질 수 있는 환경을 만듭니다.
-                    </p>
-                  </div>
-
-                  <div className="w-12 h-[1px] bg-black/10 mx-auto" />
-
                   <div className="space-y-10 text-left">
                     <h2 className="text-3xl font-light tracking-tight text-center">Preserve the moment.</h2>
                     <div className="space-y-6 text-brand-primary/70 leading-relaxed text-center md:text-left">
