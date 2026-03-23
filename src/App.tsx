@@ -306,10 +306,8 @@ const ShopPage = ({ onAddToCart }: { onAddToCart: (p: Product) => void }) => {
 
   const categories = [
     { id: 'all', name: 'ALL' },
-    { id: 'toner', name: 'TONER' },
     { id: 'serum', name: 'SERUM' },
     { id: 'cream', name: 'CREAM' },
-    { id: 'cleanser', name: 'CLEANSER' },
   ];
 
   return (
