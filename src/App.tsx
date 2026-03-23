@@ -51,9 +51,26 @@ const Header = ({ cartCount }: { cartCount: number }) => {
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
         <Link 
           to="/"
-          className="text-2xl font-bold tracking-[0.2em] hover:opacity-70 transition-opacity"
+          className="hover:opacity-70 transition-opacity flex items-center"
         >
-          HERMEN
+          <img 
+            src="/logo.png" 
+            alt="HERMEN" 
+            className="h-6 md:h-7 w-auto object-contain"
+            onError={(e) => {
+              // Fallback to text if image is missing
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const parent = target.parentElement;
+              if (parent) {
+                const text = document.createElement('span');
+                text.className = "text-2xl font-bold tracking-[0.2em]";
+                text.innerText = "HERMEN";
+                parent.appendChild(text);
+              }
+            }}
+            referrerPolicy="no-referrer"
+          />
         </Link>
 
         <nav className="hidden md:flex items-center space-x-12">
@@ -196,9 +213,25 @@ const HomePage = () => {
             <span className="block text-[10px] tracking-[0.6em] uppercase mb-8 text-white/80 font-light">
               The Essence of Timeless Beauty
             </span>
-            <h1 className="text-7xl md:text-9xl font-extralight tracking-[-0.05em] text-white mb-12 leading-none">
-              HERMEN
-            </h1>
+            <div className="mb-12 flex justify-center">
+              <img 
+                src="/logo.png" 
+                alt="HERMEN" 
+                className="h-16 md:h-28 w-auto object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    const h1 = document.createElement('h1');
+                    h1.className = "text-7xl md:text-9xl font-extralight tracking-[-0.05em] text-white leading-none";
+                    h1.innerText = "HERMEN";
+                    parent.appendChild(h1);
+                  }
+                }}
+                referrerPolicy="no-referrer"
+              />
+            </div>
             <div className="flex flex-col md:flex-row items-center justify-center gap-6">
               <Link 
                 to="/shop"
