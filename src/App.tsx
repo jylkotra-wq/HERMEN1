@@ -254,11 +254,11 @@ const HomePage = () => {
               className="group cursor-pointer"
               onClick={() => navigate(`/product/${product.id}`)}
             >
-              <div className="aspect-[3/4] overflow-hidden bg-brand-secondary mb-6 relative">
+              <div className="aspect-[4/5] overflow-hidden bg-brand-secondary mb-6 relative p-8 flex items-center justify-center">
                 <img 
                   src={product.image} 
                   alt={product.name} 
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-700"
                   referrerPolicy="no-referrer"
                 />
                 <div className="absolute bottom-0 left-0 w-full p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500 bg-white/90 backdrop-blur-sm">
@@ -344,13 +344,13 @@ const ShopPage = ({ onAddToCart }: { onAddToCart: (p: Product) => void }) => {
             className="group"
           >
             <div 
-              className="aspect-[4/5] overflow-hidden bg-brand-secondary mb-6 relative cursor-pointer"
+              className="aspect-[4/5] overflow-hidden bg-brand-secondary mb-6 relative cursor-pointer p-8 flex items-center justify-center"
               onClick={() => navigate(`/product/${product.id}`)}
             >
               <img 
                 src={product.image} 
                 alt={product.name} 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-500"
                 referrerPolicy="no-referrer"
               />
               <div className="absolute bottom-6 left-6 right-6 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
@@ -478,8 +478,8 @@ const QuizPage = () => {
 
             {result && (
               <div className="bg-brand-secondary p-8 md:p-12 flex flex-col md:flex-row items-center gap-12 text-left mb-12">
-                <div className="w-48 h-64 flex-shrink-0 overflow-hidden shadow-2xl">
-                  <img src={result.image} alt={result.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                <div className="aspect-[4/5] w-48 flex-shrink-0 overflow-hidden shadow-2xl bg-white p-4 flex items-center justify-center">
+                  <img src={result.image} alt={result.name} className="max-w-full max-h-full object-contain" referrerPolicy="no-referrer" />
                 </div>
                 <div>
                   <span className="text-[10px] tracking-[0.2em] uppercase text-brand-accent mb-2 block">Recommended for you</span>
@@ -533,14 +533,14 @@ const ProductDetailPage = ({ onAddToCart }: { onAddToCart: (p: Product) => void 
       </button>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-16 lg:gap-24">
-        <div className="aspect-[4/5] overflow-hidden bg-brand-secondary shadow-2xl">
+        <div className="aspect-[4/5] overflow-hidden bg-brand-secondary shadow-2xl p-12 flex items-center justify-center">
           <motion.img 
             initial={{ scale: 1.1, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8 }}
             src={product.image} 
             alt={product.name} 
-            className="w-full h-full object-cover"
+            className="max-w-full max-h-full object-contain"
             referrerPolicy="no-referrer"
           />
         </div>
