@@ -40,7 +40,7 @@ const Header = ({ cartCount }: { cartCount: number }) => {
   const navItems = [
     { name: 'BRAND', path: '/brand' },
     { name: 'PRODUCTS', path: '/shop' },
-    { name: 'QUIZ', path: '/quiz' },
+    { name: 'FINDER', path: '/finder' },
     { name: 'INQUIRY', path: '/inquiry' },
   ];
 
@@ -310,7 +310,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Quiz CTA */}
+      {/* FINDER CTA */}
       <section className="bg-brand-primary py-32 px-6 text-white text-center">
         <div className="max-w-3xl mx-auto">
           <Sparkles className="mx-auto mb-8 opacity-50" size={40} />
@@ -319,10 +319,10 @@ const HomePage = () => {
             HERMEN's AI skin analysis algorithm analyzes your current skin condition and concerns to recommend the most suitable routine.
           </p>
           <Link 
-            to="/quiz"
+            to="/finder"
             className="px-12 py-5 bg-white text-brand-primary text-xs tracking-[0.2em] font-bold uppercase hover:bg-brand-accent hover:text-white transition-all duration-300 inline-block"
           >
-            Start Skin Quiz
+            Start Skin FINDER
           </Link>
         </div>
       </section>
@@ -412,7 +412,7 @@ const ShopPage = ({ onAddToCart }: { onAddToCart: (p: Product) => void }) => {
   );
 };
 
-const QuizPage = () => {
+const FinderPage = () => {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<{ skinType?: string; concern?: string }>({});
   const [result, setResult] = useState<Product | null>(null);
@@ -517,7 +517,7 @@ const QuizPage = () => {
                       onClick={() => { setStep(0); setAnswers({}); setResult(null); }}
                       className="px-8 py-4 border border-brand-primary text-brand-primary text-[10px] tracking-widest font-bold uppercase"
                     >
-                      Retry Quiz
+                      Retry FINDER
                     </button>
                   </div>
                 </div>
@@ -767,7 +767,7 @@ function AppContent({ cart, onAddToCart, showToast }: {
             <Routes location={location}>
               <Route path="/" element={<HomePage />} />
               <Route path="/shop" element={<ShopPage onAddToCart={onAddToCart} />} />
-              <Route path="/quiz" element={<QuizPage />} />
+              <Route path="/finder" element={<FinderPage />} />
               <Route path="/product/:id" element={<ProductDetailPage onAddToCart={onAddToCart} />} />
               <Route path="/brand" element={<BrandPage />} />
               <Route path="/inquiry" element={<InquiryPage />} />
