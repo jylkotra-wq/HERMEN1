@@ -39,7 +39,7 @@ const Header = ({ cartCount }: { cartCount: number }) => {
 
   const navItems = [
     { name: 'BRAND', path: '/brand' },
-    { name: 'SHOP', path: '/shop' },
+    { name: 'PRODUCTS', path: '/shop' },
     { name: 'QUIZ', path: '/quiz' },
   ];
 
@@ -142,7 +142,7 @@ const Footer = () => (
       <div>
         <h3 className="text-xs font-bold tracking-widest mb-6 uppercase">Customer Service</h3>
         <ul className="text-sm text-brand-primary/60 space-y-3">
-          <li>Customer Service: 0507-1438-5539</li>
+          <li>Customer Service: +82 507-1438-5539</li>
           <li>Weekdays 10:00 - 17:00</li>
           <li>Lunch 12:00 - 13:00</li>
           <li>Closed on weekends and holidays</li>
@@ -334,7 +334,7 @@ const ShopPage = ({ onAddToCart }: { onAddToCart: (p: Product) => void }) => {
   return (
     <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto">
       <div className="text-center mb-20">
-        <h1 className="text-5xl font-light tracking-tighter mb-6">Collections</h1>
+        <h1 className="text-5xl font-light tracking-tighter mb-6">OUR PRODUCTS</h1>
         <p className="text-brand-primary/50 text-sm max-w-xl mx-auto">
           Discover HERMEN's professional skincare lineup, segmented by skin type and concern.
         </p>
