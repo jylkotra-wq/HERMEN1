@@ -52,7 +52,7 @@ const Header = ({ cartCount }: { cartCount: number }) => {
       "fixed top-0 left-0 w-full z-50 transition-all duration-500",
       isScrolled ? "bg-white py-4 shadow-sm" : "bg-transparent py-6"
     )}>
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 items-center">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-3 items-center">
         <Link 
           to="/"
           className="hover:opacity-70 transition-opacity flex items-center"
@@ -77,7 +77,7 @@ const Header = ({ cartCount }: { cartCount: number }) => {
           />
         </Link>
 
-        <nav className="hidden md:flex items-center justify-center space-x-12">
+        <nav className="hidden md:flex items-center justify-center space-x-12 col-start-2">
           {navItems.map((item) => (
             <Link
               key={item.path}
@@ -95,7 +95,7 @@ const Header = ({ cartCount }: { cartCount: number }) => {
           ))}
         </nav>
 
-        <div className="flex items-center justify-end space-x-6">
+        <div className="flex items-center justify-end space-x-6 col-start-2 md:col-start-3">
           <button 
             className={cn("md:hidden", isWhite ? "text-white" : "text-black")}
             onClick={() => setIsMobileMenuOpen(true)}
