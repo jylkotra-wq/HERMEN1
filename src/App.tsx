@@ -147,12 +147,9 @@ const Footer = () => (
         </p>
       </div>
       <div>
-        <h3 className="text-xs font-bold tracking-widest mb-6 uppercase">Customer Service</h3>
+        <h3 className="text-xs font-bold tracking-widest mb-6 uppercase">Contact</h3>
         <ul className="text-sm text-brand-primary/60 space-y-3">
-          <li>Customer Service: +82 (0) 507-1438-5539</li>
-          <li>Weekdays 10:00 - 17:00 (KST, UTC+9) </li>
-          <li>Lunch 12:00 - 13:00 (KST, UTC+9) </li>
-          <li>Closed on weekends and holidays</li>
+          <li>hermen@hermen.co.kr </li>
         </ul>
       </div>
       <div>
@@ -322,7 +319,7 @@ const HomePage = () => {
             to="/finder"
             className="px-12 py-5 bg-white text-brand-primary text-xs tracking-[0.2em] font-bold uppercase hover:bg-brand-accent hover:text-white transition-all duration-300 inline-block"
           >
-            Start Skin FINDER
+            Start Solution FINDER
           </Link>
         </div>
       </section>
