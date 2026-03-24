@@ -13,7 +13,7 @@ export interface Product {
 export const PRODUCTS: Product[] = [
   {
     id: '1',
-    name: 'Daily Barrier Cream',
+    name: 'Daily Barrier Cream (50ml)',
     description: 'A daily cream that protects the skin barrier and maintains moisture.',
     price: 38000,
     image: '/barrier-cream.png',
@@ -24,7 +24,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: '2',
-    name: 'Calming Serum',
+    name: 'Calming Serum (30ml)',
     description: 'A highly concentrated serum that instantly calms sensitive skin.',
     price: 35000,
     image: '/calming-serum.png',
@@ -35,7 +35,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: '3',
-    name: 'Recovery Serum',
+    name: 'Recovery Serum (30ml)',
     description: 'A recovery serum that restores skin balance and adds vitality.',
     price: 42000,
     image: '/recovery-serum.png',

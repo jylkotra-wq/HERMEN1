@@ -41,14 +41,18 @@ const Header = ({ cartCount }: { cartCount: number }) => {
     { name: 'BRAND', path: '/brand' },
     { name: 'PRODUCTS', path: '/shop' },
     { name: 'QUIZ', path: '/quiz' },
+    { name: 'INQUIRY', path: '/inquiry' },
   ];
+
+  const isMainPage = location.pathname === '/';
+  const isWhite = isMainPage && !isScrolled;
 
   return (
     <header className={cn(
       "fixed top-0 left-0 w-full z-50 transition-all duration-500",
       isScrolled ? "bg-white py-4 shadow-sm" : "bg-transparent py-6"
     )}>
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 items-center">
         <Link 
           to="/"
           className="hover:opacity-70 transition-opacity flex items-center"
@@ -64,7 +68,7 @@ const Header = ({ cartCount }: { cartCount: number }) => {
               const parent = target.parentElement;
               if (parent) {
                 const text = document.createElement('span');
-                text.className = "text-2xl font-bold tracking-[0.2em]";
+                text.className = cn("text-2xl font-bold tracking-[0.2em]", isWhite ? "text-white" : "text-black");
                 text.innerText = "HERMEN";
                 parent.appendChild(text);
               }
@@ -73,14 +77,17 @@ const Header = ({ cartCount }: { cartCount: number }) => {
           />
         </Link>
 
-        <nav className="hidden md:flex items-center space-x-12">
+        <nav className="hidden md:flex items-center justify-center space-x-12">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
               className={cn(
-                "text-xs tracking-[0.15em] font-medium transition-colors hover:text-brand-accent",
-                location.pathname === item.path ? "text-brand-primary" : "text-brand-primary/60"
+                "text-xs tracking-[0.15em] font-medium transition-colors",
+                isWhite ? "hover:text-white/70" : "hover:text-black/70",
+                isWhite 
+                  ? (location.pathname === item.path ? "text-white" : "text-white/60")
+                  : (location.pathname === item.path ? "text-black" : "text-black/60")
               )}
             >
               {item.name}
@@ -88,9 +95,9 @@ const Header = ({ cartCount }: { cartCount: number }) => {
           ))}
         </nav>
 
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center justify-end space-x-6">
           <button 
-            className="md:hidden"
+            className={cn("md:hidden", isWhite ? "text-white" : "text-black")}
             onClick={() => setIsMobileMenuOpen(true)}
           >
             <Menu size={24} />
@@ -142,9 +149,9 @@ const Footer = () => (
       <div>
         <h3 className="text-xs font-bold tracking-widest mb-6 uppercase">Customer Service</h3>
         <ul className="text-sm text-brand-primary/60 space-y-3">
-          <li>Customer Service: +82 507-1438-5539</li>
-          <li>Weekdays 10:00 - 17:00</li>
-          <li>Lunch 12:00 - 13:00</li>
+          <li>Customer Service: +82 (0) 507-1438-5539</li>
+          <li>Weekdays 10:00 - 17:00 (KST, UTC+9) </li>
+          <li>Lunch 12:00 - 13:00 (KST, UTC+9) </li>
           <li>Closed on weekends and holidays</li>
         </ul>
       </div>
@@ -235,6 +242,12 @@ const HomePage = () => {
               >
                 Our Story
               </Link>
+              <a 
+                href="mailto:hermen@hermen.co.kr"
+                className="px-12 py-5 bg-white text-brand-primary text-[10px] tracking-[0.3em] font-bold uppercase hover:bg-brand-primary hover:text-white transition-all duration-700 min-w-[240px] text-center"
+              >
+                INQUIRY
+              </a>
             </div>
           </motion.div>
         </div>
@@ -689,6 +702,25 @@ const BrandPage = () => {
   );
 };
 
+const InquiryPage = () => {
+  return (
+    <div className="pt-32 pb-20 px-6 max-w-2xl mx-auto">
+      <h1 className="text-5xl font-light tracking-tighter mb-12 text-center">Inquiry</h1>
+      <div className="space-y-6 text-center">
+        <p className="text-brand-primary/70 leading-relaxed">
+          For any questions, partnership opportunities, or customer support, please feel free to reach out to us.
+        </p>
+        <a 
+          href="mailto:hermen@hermen.co.kr"
+          className="inline-block px-12 py-5 bg-brand-primary text-white text-[10px] tracking-[0.3em] font-bold uppercase hover:bg-brand-accent transition-all duration-700 min-w-[240px]"
+        >
+          SEND EMAIL
+        </a>
+      </div>
+    </div>
+  );
+};
+
 // --- Main App ---
 
 export default function App() {
@@ -738,6 +770,7 @@ function AppContent({ cart, onAddToCart, showToast }: {
               <Route path="/quiz" element={<QuizPage />} />
               <Route path="/product/:id" element={<ProductDetailPage onAddToCart={onAddToCart} />} />
               <Route path="/brand" element={<BrandPage />} />
+              <Route path="/inquiry" element={<InquiryPage />} />
             </Routes>
           </motion.div>
         </AnimatePresence>
