@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import logo from '../public/logo.png';
 import { 
   ShoppingBag, 
   Search, 
@@ -61,21 +62,9 @@ const Header = ({ cartCount }: { cartCount: number }) => {
           className="hover:opacity-70 transition-opacity flex items-center"
         >
           <img 
-            src="/logo.png" 
+            src={logo} 
             alt="HERMEN" 
             className="h-6 md:h-7 w-auto object-contain"
-            onError={(e) => {
-              // Fallback to text if image is missing
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              const parent = target.parentElement;
-              if (parent) {
-                const text = document.createElement('span');
-                text.className = cn("text-2xl font-bold tracking-[0.2em]", isWhite ? "text-white" : "text-black");
-                text.innerText = "HERMEN";
-                parent.appendChild(text);
-              }
-            }}
             referrerPolicy="no-referrer"
           />
         </Link>
@@ -212,20 +201,9 @@ const HomePage = () => {
             </span>
             <div className="mb-12 flex justify-center">
               <img 
-                src="/logo.png" 
+                src={logo} 
                 alt="HERMEN" 
                 className="h-16 md:h-28 w-auto object-contain"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  const parent = target.parentElement;
-                  if (parent) {
-                    const h1 = document.createElement('h1');
-                    h1.className = "text-7xl md:text-9xl font-extralight tracking-[-0.05em] text-white leading-none";
-                    h1.innerText = "HERMEN";
-                    parent.appendChild(h1);
-                  }
-                }}
                 referrerPolicy="no-referrer"
               />
             </div>
