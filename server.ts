@@ -13,11 +13,7 @@ async function startServer() {
 
   app.use(express.json());
 
-  // API routes or health checks
-  app.get("/api/health", (req, res) => {
-    res.json({ status: "ok" });
-  });
-
+  // API routes
   app.post("/api/chat", async (req, res) => {
     const { message } = req.body;
     if (!message) {
@@ -27,7 +23,7 @@ async function startServer() {
     try {
       const { GoogleGenerativeAI } = await import("@google/generative-ai");
       // Use platform default authentication
-      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+      const genAI = new GoogleGenerativeAI("");
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       const prompt = `You are a professional skincare consultant for the HERMEN brand. 
@@ -48,6 +44,10 @@ async function startServer() {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       res.status(500).json({ error: "Internal server error", details: errorMessage });
     }
+  });
+
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok" });
   });
 
   // Vite middleware for development
