@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import { Analytics } from '@vercel/analytics/react';
 import logo from '../public/logo.png';
 import { 
   ShoppingBag, 
@@ -714,6 +715,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppContent cart={cart} onAddToCart={handleAddToCart} showToast={showToast} />
+      <Analytics />
     </BrowserRouter>
   );
 }
