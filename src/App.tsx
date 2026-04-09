@@ -22,6 +22,9 @@ import {
 } from 'lucide-react';
 import { PRODUCTS, Product } from './constants';
 import { cn } from './lib/utils';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { analytics } from './firebase';
+import { logEvent } from 'firebase/analytics';
 
 // --- Components ---
 
@@ -30,6 +33,7 @@ const Header = ({ cartCount }: { cartCount: number }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, signInWithGoogle, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -96,6 +100,21 @@ const Header = ({ cartCount }: { cartCount: number }) => {
         </nav>
 
         <div className="flex items-center justify-end space-x-6 col-start-2 md:col-start-3">
+          {user ? (
+            <button 
+              onClick={logout}
+              className={cn("text-xs tracking-[0.15em] font-medium transition-colors", isWhite ? "text-white hover:text-white/70" : "text-black hover:text-black/70")}
+            >
+              LOGOUT
+            </button>
+          ) : (
+            <button 
+              onClick={signInWithGoogle}
+              className={cn("text-xs tracking-[0.15em] font-medium transition-colors", isWhite ? "text-white hover:text-white/70" : "text-black hover:text-black/70")}
+            >
+              LOGIN
+            </button>
+          )}
           <button 
             className={cn("md:hidden", isWhite ? "text-white" : "text-black")}
             onClick={() => setIsMobileMenuOpen(true)}
@@ -731,11 +750,17 @@ export default function App() {
   };
 
   return (
-    <BrowserRouter>
-      <AppContent cart={cart} onAddToCart={handleAddToCart} showToast={showToast} />
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <AppContent cart={cart} onAddToCart={handleAddToCart} showToast={showToast} />
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
+
+import { ChatbotFinder } from './components/ChatbotFinder';
+import { AuthProvider } from './contexts/AuthContext';
+// ... rest of the imports ...
 
 function AppContent({ cart, onAddToCart, showToast }: { 
   cart: Product[], 
@@ -743,9 +768,12 @@ function AppContent({ cart, onAddToCart, showToast }: {
   showToast: boolean 
 }) {
   const location = useLocation();
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    // Log page view to Analytics
+    logEvent(analytics, 'page_view', { page_path: location.pathname });
   }, [location.pathname]);
 
   return (
@@ -774,6 +802,14 @@ function AppContent({ cart, onAddToCart, showToast }: {
       </main>
 
       <Footer />
+
+      <button 
+        onClick={() => setIsChatOpen(true)}
+        className="fixed bottom-6 right-6 bg-brand-primary text-white p-4 rounded-full shadow-lg z-[90] hover:bg-brand-accent transition-colors"
+      >
+        <Sparkles size={24} />
+      </button>
+      <ChatbotFinder isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
 
       {/* Toast Notification */}
       <AnimatePresence>

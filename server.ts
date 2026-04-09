@@ -11,9 +11,44 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  app.use(express.json());
+
   // API routes or health checks
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
+  });
+
+  app.post("/api/chat", async (req, res) => {
+    const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
+    }
+
+    try {
+      const { GoogleGenerativeAI } = await import("@google/generative-ai");
+      // Use the correct environment variable for the SDK
+      const apiKey = process.env.GEMINI_API_KEY || "";
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+      const prompt = `You are a professional skincare consultant for the HERMEN brand. 
+      Here are our products:
+      - Daily Barrier Cream (50ml): Good for dry, combination, sensitive skin. Concerns: hydration, calming.
+      - Calming Serum (30ml): Good for sensitive, oily, combination skin. Concerns: calming.
+      - Recovery Serum (30ml): Good for dry, combination skin. Concerns: aging, hydration.
+
+      Please provide kind and professional advice regarding the user's skin concerns: "${message}".
+      If the concern matches a product, recommend it. If not, ask a follow-up question to better understand their skin type or concerns.
+      ALWAYS respond in English.`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      res.json({ response: response.text() });
+    } catch (error) {
+      console.error("Error in /api/chat:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      res.status(500).json({ error: "Internal server error", details: errorMessage });
+    }
   });
 
   // Vite middleware for development
