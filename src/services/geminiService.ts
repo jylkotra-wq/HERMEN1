@@ -9,13 +9,14 @@ export const getChatbotResponse = async (userMessage: string) => {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch chatbot response');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || errorData.details || 'Failed to fetch chatbot response');
     }
 
     const data = await response.json();
     return data.response;
   } catch (error) {
     console.error('Error fetching chatbot response:', error);
-    return 'Sorry, I am currently unable to provide consultation. Please try again later.';
+    return `Error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again later.`;
   }
 };

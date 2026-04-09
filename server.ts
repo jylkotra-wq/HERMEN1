@@ -26,9 +26,8 @@ async function startServer() {
 
     try {
       const { GoogleGenerativeAI } = await import("@google/generative-ai");
-      // Use the correct environment variable for the SDK
-      const apiKey = process.env.GEMINI_API_KEY || "";
-      const genAI = new GoogleGenerativeAI(apiKey);
+      // Use platform default authentication
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       const prompt = `You are a professional skincare consultant for the HERMEN brand. 

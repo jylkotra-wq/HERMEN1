@@ -33,7 +33,6 @@ const Header = ({ cartCount }: { cartCount: number }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, signInWithGoogle, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -100,21 +99,6 @@ const Header = ({ cartCount }: { cartCount: number }) => {
         </nav>
 
         <div className="flex items-center justify-end space-x-6 col-start-2 md:col-start-3">
-          {user ? (
-            <button 
-              onClick={logout}
-              className={cn("text-xs tracking-[0.15em] font-medium transition-colors", isWhite ? "text-white hover:text-white/70" : "text-black hover:text-black/70")}
-            >
-              LOGOUT
-            </button>
-          ) : (
-            <button 
-              onClick={signInWithGoogle}
-              className={cn("text-xs tracking-[0.15em] font-medium transition-colors", isWhite ? "text-white hover:text-white/70" : "text-black hover:text-black/70")}
-            >
-              LOGIN
-            </button>
-          )}
           <button 
             className={cn("md:hidden", isWhite ? "text-white" : "text-black")}
             onClick={() => setIsMobileMenuOpen(true)}
@@ -750,11 +734,9 @@ export default function App() {
   };
 
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppContent cart={cart} onAddToCart={handleAddToCart} showToast={showToast} />
-      </BrowserRouter>
-    </AuthProvider>
+    <BrowserRouter>
+      <AppContent cart={cart} onAddToCart={handleAddToCart} showToast={showToast} />
+    </BrowserRouter>
   );
 }
 
