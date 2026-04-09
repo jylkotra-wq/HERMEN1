@@ -26,6 +26,7 @@ import { cn } from './lib/utils';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { analytics } from './firebase';
 import { logEvent } from 'firebase/analytics';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 // --- Components ---
 
@@ -714,6 +715,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppContent cart={cart} onAddToCart={handleAddToCart} showToast={showToast} />
+      <SpeedInsights />
     </BrowserRouter>
   );
 }
