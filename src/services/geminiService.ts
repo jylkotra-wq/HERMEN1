@@ -1,20 +1,40 @@
-export const getChatbotResponse = async (userMessage: string) => {
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+
+export const getChatbotResponse = async (messages: any[]) => {
   try {
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ message: userMessage }),
+    const systemPrompt = `You are the "HERMEN AI Concierge", an AI expert who perfectly understands the content of the HERMEN website (www.hermen.co.kr). 
+    Your goal is to provide kind, clear, and professional advice to users in English.
+
+    Here are the HERMEN products you should recommend based on user needs:
+    - Daily Barrier Cream (50ml): Best for dry, combination, and sensitive skin. Focuses on hydration and calming the skin barrier.
+    - Calming Serum (30ml): Best for sensitive, oily, and combination skin. Focuses on instant calming and soothing.
+    - Recovery Serum (30ml): Best for dry and combination skin. Focuses on anti-aging, hydration, and restoring skin balance.
+
+    Important Instructions:
+    1. ALWAYS respond in English.
+    2. Be kind and professional.
+    3. If a user expresses interest in purchasing or wants to contact HERMEN, provide the email address: hermen@hermen.co.kr. 
+    4. Format the email as a clickable link using markdown: [hermen@hermen.co.kr](mailto:hermen@hermen.co.kr).
+    5. DO NOT use any hashtags (#) in your responses.
+    6. If the user's concern isn't clear, ask follow-up questions to understand their skin type or specific issues.`;
+
+    const contents = [
+      { role: 'user', parts: [{ text: systemPrompt }] },
+      { role: 'model', parts: [{ text: "Understood. I am the HERMEN AI expert, ready to assist users with professional skincare advice based on our website's philosophy and products." }] },
+      ...messages.map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.text }],
+      }))
+    ];
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: contents,
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || errorData.details || 'Failed to fetch chatbot response');
-    }
-
-    const data = await response.json();
-    return data.response;
+    return response.text || "I'm sorry, I couldn't generate a response.";
   } catch (error) {
     console.error('Error fetching chatbot response:', error);
     return `Error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again later.`;
