@@ -11,7 +11,7 @@ interface Message {
   sender: 'bot' | 'user';
 }
 
-export const ChatbotFinder = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+export const ChatbotAnalysis = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [messages, setMessages] = useState<Message[]>([
     { id: '1', text: "Hello! I am the **HERMEN AI Concierge**. How can I assist you with your skincare journey today?", sender: 'bot' }
   ]);

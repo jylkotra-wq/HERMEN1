@@ -19,7 +19,7 @@ export const Header = () => {
   const navItems = [
     { name: 'BRAND', path: '/brand' },
     { name: 'PRODUCTS', path: '/shop' },
-    { name: 'FINDER', path: '/finder' },
+    { name: 'ANALYSIS', path: '/analysis' },
     { name: 'INQUIRY', path: '/inquiry' },
   ];
 

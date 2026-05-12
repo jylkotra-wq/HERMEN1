@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ChevronRight, CheckCircle2 } from 'lucide-react';
 import { PRODUCTS, Product } from '../constants';
 
-export const FinderPage = () => {
+export const AnalysisPage = () => {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<{ skinType?: string; concern?: string }>({});
   const [result, setResult] = useState<Product | null>(null);
@@ -108,7 +108,7 @@ export const FinderPage = () => {
                       onClick={() => { setStep(0); setAnswers({}); setResult(null); }}
                       className="px-8 py-4 border border-brand-primary text-brand-primary text-[10px] tracking-widest font-bold uppercase"
                     >
-                      Retry FINDER
+                      Retry ANALYSIS
                     </button>
                   </div>
                 </div>

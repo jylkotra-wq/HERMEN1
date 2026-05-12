@@ -8,12 +8,12 @@ import { analytics } from './firebase';
 // Layout Components
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
-import { ChatbotFinder } from './components/ChatbotFinder';
+import { ChatbotAnalysis } from './components/ChatbotAnalysis';
 
 // Pages
 import { HomePage } from './pages/HomePage';
 import { ShopPage } from './pages/ShopPage';
-import { FinderPage } from './pages/FinderPage';
+import { AnalysisPage } from './pages/AnalysisPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { BrandPage } from './pages/BrandPage';
 import { InquiryPage } from './pages/InquiryPage';
@@ -49,7 +49,7 @@ function AppContent() {
             <Routes location={location}>
               <Route path="/" element={<HomePage />} />
               <Route path="/shop" element={<ShopPage />} />
-              <Route path="/finder" element={<FinderPage />} />
+              <Route path="/analysis" element={<AnalysisPage />} />
               <Route path="/product/:id" element={<ProductDetailPage />} />
               <Route path="/brand" element={<BrandPage />} />
               <Route path="/inquiry" element={<InquiryPage />} />
@@ -68,7 +68,7 @@ function AppContent() {
         <Sparkles size={24} />
       </button>
       
-      <ChatbotFinder isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <ChatbotAnalysis isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
 
       {/* Toast Notification (Example usage) */}
       <AnimatePresence>
