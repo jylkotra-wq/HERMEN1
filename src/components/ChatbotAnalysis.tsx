@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Send, Sparkles, Bot } from 'lucide-react';
+import { X, Send, Sparkles, Bot, Camera } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { getChatbotResponse } from '../services/geminiService';
 import Markdown from 'react-markdown';
 
 interface Message {
   id: string;
-  text: string;
+  text?: string;
+  image?: string;
   sender: 'bot' | 'user';
 }
 
@@ -18,20 +19,19 @@ export const ChatbotAnalysis = ({ isOpen, onClose }: { isOpen: boolean; onClose:
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
-    // Only auto-scroll when the user sends a message or when the bot starts thinking.
-    // This prevents jumping to the bottom of long bot responses, allowing the user to read from the start.
     if (lastMessage?.sender === 'user' || isTyping) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isTyping]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isTyping) return;
+  const handleSend = async (text: string, image?: string) => {
+    if ((!text.trim() && !image) || isTyping) return;
 
-    const userMessage: Message = { id: Date.now().toString(), text: input, sender: 'user' };
+    const userMessage: Message = { id: Date.now().toString(), text, image, sender: 'user' };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsTyping(true);
@@ -42,6 +42,17 @@ export const ChatbotAnalysis = ({ isOpen, onClose }: { isOpen: boolean; onClose:
       setMessages(prev => [...prev, botResponse]);
     } finally {
       setIsTyping(false);
+    }
+  };
+
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        handleSend("Uploaded a photo", reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -70,12 +81,15 @@ export const ChatbotAnalysis = ({ isOpen, onClose }: { isOpen: boolean; onClose:
                   "p-3 rounded-lg text-sm max-w-[80%] break-words", 
                   msg.sender === 'user' ? "bg-brand-secondary text-brand-primary border border-black/5" : "bg-brand-secondary text-brand-primary"
                 )}>
-                  <div className={cn(
-                    "prose prose-sm max-w-none prose-p:leading-relaxed prose-a:text-blue-600 prose-a:underline",
-                    msg.sender === 'user' ? "prose-p:text-brand-primary" : "prose-p:text-brand-primary"
-                  )}>
-                    <Markdown>{msg.text}</Markdown>
-                  </div>
+                  {msg.image && <img src={msg.image} alt="User upload" className="rounded mb-2 max-w-full" />}
+                  {msg.text && (
+                    <div className={cn(
+                      "prose prose-sm max-w-none prose-p:leading-relaxed prose-a:text-blue-600 prose-a:underline",
+                      msg.sender === 'user' ? "prose-p:text-brand-primary" : "prose-p:text-brand-primary"
+                    )}>
+                      <Markdown>{msg.text}</Markdown>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -97,16 +111,30 @@ export const ChatbotAnalysis = ({ isOpen, onClose }: { isOpen: boolean; onClose:
 
           <div className="p-4 border-t border-black/10 flex gap-2 bg-white">
             <input
+              type="file"
+              accept="image/*"
+              capture="user"
+              className="hidden"
+              ref={fileInputRef}
+              onChange={handleImageUpload}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2 rounded hover:bg-brand-secondary text-brand-primary"
+            >
+              <Camera size={18} />
+            </button>
+            <input
               value={input}
               disabled={isTyping}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+              onKeyPress={(e) => e.key === 'Enter' && handleSend(input)}
               className="flex-grow p-2 border border-black/10 rounded text-sm focus:outline-none focus:border-brand-primary disabled:opacity-50"
               placeholder={isTyping ? "Thinking..." : "Please enter your skin concerns..."}
             />
             <button 
-              onClick={handleSend} 
-              disabled={isTyping || !input.trim()}
+              onClick={() => handleSend(input)} 
+              disabled={isTyping || (!input.trim())}
               className="bg-brand-primary text-white p-2 rounded disabled:opacity-50 hover:bg-brand-accent transition-colors"
             >
               <Send size={18} />

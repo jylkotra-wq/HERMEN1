@@ -1,5 +1,5 @@
 {
   "name": "HERMEN Skincare",
   "description": "Premium Skincare, HERMEN",
-  "requestFramePermissions": []
+  "requestFramePermissions": ["camera"]
 }
