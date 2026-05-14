@@ -13,7 +13,7 @@ export const getChatbotResponse = async (messages: any[]) => {
     - Recovery Serum (30ml): Best for dry and combination skin. Focuses on anti-aging, hydration, and restoring skin balance.
 
     Important Instructions:
-    1. ALWAYS respond in English.
+    1. Detect the language of the user's message and respond in that same language (e.g., if the user writes in Korean, respond in Korean).
     2. Be kind and professional.
     3. If a user expresses interest in purchasing or wants to contact HERMEN, provide the email address: hermen@hermen.co.kr. 
     4. Format the email as a clickable link using markdown: [hermen@hermen.co.kr](mailto:hermen@hermen.co.kr).
