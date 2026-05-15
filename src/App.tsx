@@ -17,6 +17,7 @@ import { AnalysisPage } from './pages/AnalysisPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { BrandPage } from './pages/BrandPage';
 import { InquiryPage } from './pages/InquiryPage';
+import { AdminDashboard } from './pages/AdminDashboard';
 
 // Types
 import { Product } from './constants';
@@ -53,6 +54,7 @@ function AppContent() {
               <Route path="/product/:id" element={<ProductDetailPage />} />
               <Route path="/brand" element={<BrandPage />} />
               <Route path="/inquiry" element={<InquiryPage />} />
+              <Route path="/admin" element={<AdminDashboard />} />
             </Routes>
           </motion.div>
         </AnimatePresence>

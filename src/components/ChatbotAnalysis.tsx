@@ -14,7 +14,7 @@ interface Message {
 
 export const ChatbotAnalysis = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [messages, setMessages] = useState<Message[]>([
-    { id: '1', text: "Hello! I am the **HERMEN AI Concierge**. How can I assist you with your skincare journey today?", sender: 'bot' }
+    { id: '1', text: "Hello! I am the **HERMEN AI Concierge**. How can I assist you with your skincare journey today? If you upload a selfie, I can analyze your skin type and concerns. Please feel free to speak in your preferred language.", sender: 'bot' }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
