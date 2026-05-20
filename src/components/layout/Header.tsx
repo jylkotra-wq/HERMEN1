@@ -20,6 +20,7 @@ export const Header = () => {
     { name: 'BRAND', path: '/brand' },
     { name: 'PRODUCTS', path: '/shop' },
     { name: 'ANALYSIS', path: '/analysis' },
+    { name: 'TRUST', path: '/trust' },
     { name: 'INQUIRY', path: '/inquiry' },
   ];
 

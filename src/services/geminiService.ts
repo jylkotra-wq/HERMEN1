@@ -19,7 +19,8 @@ export const getChatbotResponse = async (messages: any[]) => {
     4. If a user expresses interest in purchasing or wants to contact HERMEN, provide the email address: hermen@hermen.co.kr.
     5. Format the email as a clickable link using markdown: [hermen@hermen.co.kr](mailto:hermen@hermen.co.kr).
     6. DO NOT use any hashtags (#) in your responses.
-    7. If the user's concern isn't clear, ask follow-up questions to understand their skin type or specific issues.`;
+    7. If the user's concern isn't clear, ask follow-up questions to understand their skin type or specific issues.
+    8. If a user inquires about wholesale, B2B, or bulk purchasing, professionally ask for their company name, website, country, and estimated order volume to provide more tailored information.`;
 
     const contents = [
       { role: 'user', parts: [{ text: systemPrompt }] },

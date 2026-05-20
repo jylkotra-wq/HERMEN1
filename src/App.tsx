@@ -9,6 +9,7 @@ import { analytics } from './firebase';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { ChatbotAnalysis } from './components/ChatbotAnalysis';
+import { ChatProvider, useChat } from './contexts/ChatContext';
 
 // Pages
 import { HomePage } from './pages/HomePage';
@@ -17,15 +18,14 @@ import { AnalysisPage } from './pages/AnalysisPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { BrandPage } from './pages/BrandPage';
 import { InquiryPage } from './pages/InquiryPage';
-import { AdminDashboard } from './pages/AdminDashboard';
+import { TrustSafetyPage } from './pages/TrustSafetyPage';
 
 // Types
 import { Product } from './constants';
 
 function AppContent() {
   const location = useLocation();
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0); // Placeholder for future cart logic
+  const { isChatOpen, setIsChatOpen, initialMessage } = useChat();
   const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
@@ -54,7 +54,7 @@ function AppContent() {
               <Route path="/product/:id" element={<ProductDetailPage />} />
               <Route path="/brand" element={<BrandPage />} />
               <Route path="/inquiry" element={<InquiryPage />} />
-              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/trust" element={<TrustSafetyPage />} />
             </Routes>
           </motion.div>
         </AnimatePresence>
@@ -70,7 +70,7 @@ function AppContent() {
         <Sparkles size={24} />
       </button>
       
-      <ChatbotAnalysis isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <ChatbotAnalysis isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} initialMessage={initialMessage} />
 
       {/* Toast Notification (Example usage) */}
       <AnimatePresence>
@@ -93,7 +93,9 @@ function AppContent() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <ChatProvider>
+        <AppContent />
+      </ChatProvider>
     </BrowserRouter>
   );
 }

@@ -12,7 +12,7 @@ interface Message {
   sender: 'bot' | 'user';
 }
 
-export const ChatbotAnalysis = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: boolean; onClose: () => void; initialMessage?: string | null }) => {
   const [messages, setMessages] = useState<Message[]>([
     { id: '1', text: "Hello! I am the **HERMEN AI Concierge**. How can I assist you with your skincare journey today? If you upload a selfie, I can analyze your skin type and concerns. Please feel free to speak in your preferred language.", sender: 'bot' }
   ]);
@@ -20,6 +20,12 @@ export const ChatbotAnalysis = ({ isOpen, onClose }: { isOpen: boolean; onClose:
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isOpen && initialMessage) {
+      handleSend(initialMessage);
+    }
+  }, [isOpen, initialMessage]);
 
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
