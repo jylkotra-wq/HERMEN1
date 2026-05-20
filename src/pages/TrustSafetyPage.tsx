@@ -57,11 +57,11 @@ const IPSection = () => (
   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
     <h3 className="text-xl font-medium">Brand Protection & Exclusivity</h3>
     <div className="grid grid-cols-2 gap-8">
-      <div className="bg-gray-100 h-64 rounded flex items-center justify-center">
-        [US Trademark Certificate]
+      <div className="bg-gray-100 h-64 rounded flex items-center justify-center overflow-hidden">
+        <img src="/logos/us_trademark.png" alt="US Trademark" className="w-full h-full object-contain" />
       </div>
-      <div className="bg-gray-100 h-64 rounded flex items-center justify-center">
-        [KR Trademark Certificate]
+      <div className="bg-gray-100 h-64 rounded flex items-center justify-center overflow-hidden">
+        <img src="/logos/kr_trademark.png" alt="KR Trademark" className="w-full h-full object-contain" />
       </div>
     </div>
   </motion.div>
