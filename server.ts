@@ -25,20 +25,36 @@ async function startServer() {
   app.post("/api/send-email", async (req, res) => {
     const { name, email, message } = req.body;
     
-    // Check for SMTP configuration
-    if (!process.env.SMTP_HOST || !process.env.SMTP_PORT || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.error("SMTP environment variables are not configured.");
-      return res.status(500).json({ success: false, error: "Email service not configured. Please set SMTP environment variables." });
+    // Check for SMTP configuration and identify which ones are missing
+    const missingVars = [];
+    if (!process.env.SMTP_HOST) missingVars.push("SMTP_HOST");
+    if (!process.env.SMTP_PORT) missingVars.push("SMTP_PORT");
+    if (!process.env.SMTP_USER) missingVars.push("SMTP_USER");
+    if (!process.env.SMTP_PASS) missingVars.push("SMTP_PASS");
+
+    if (missingVars.length > 0) {
+      const errorMsg = `SMTP configuration is incomplete. Missing: ${missingVars.join(", ")}. Please configure these in the Settings -> Environment Variables menu on AI Studio.`;
+      console.error(errorMsg);
+      return res.status(400).json({ 
+        success: false, 
+        error: errorMsg,
+        code: "MISSING_ENV_VARS",
+        missing: missingVars
+      });
     }
 
     // Create transporter
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),
+      secure: Number(process.env.SMTP_PORT) === 465, // true for port 465, false for other ports
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+      // Timeout settings to avoid hanging
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
     });
 
     try {
@@ -49,9 +65,14 @@ async function startServer() {
         text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
       });
       res.json({ success: true });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ success: false, error: "Failed to send email" });
+    } catch (error: any) {
+      console.error("Nodemailer SMTP Error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message || "Failed to send email through SMTP.",
+        code: "SMTP_SEND_FAILED",
+        details: error.toString()
+      });
     }
   });
 
