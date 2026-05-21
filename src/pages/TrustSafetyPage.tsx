@@ -18,18 +18,20 @@ const CertificationItem = ({ item, logo }: { item: { title: string; desc: string
 const CertificationSection = () => {
     const logos = [
         '/logos/mocra.png',
-        '/logos/cpnp.png',
-        '/logos/gmp.jpg',
+        '/logos/cpnp.png'
     ];
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
-            <h3 className="text-xl font-medium">Ready for the Global Market</h3>
+            {/* Added map image */}
+            <div className="w-full flex justify-center mb-8">
+                <img src="/logos/map.png" alt="Global Market Coverage" className="max-w-full h-auto rounded shadow-lg" />
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {[
                     { title: 'MoCRA (USA)', desc: 'US Cosmetic Regulation Modernization Act registration complete.' },
-                    { title: 'CPNP (EU)', desc: 'European Cosmetic Product Notification Portal registration complete.' },
-                    { title: 'CGMP', desc: 'Manufactured in CGMP certified facilities meeting highest standards.' },
+                    { title: 'CPNP (EU)', desc: 'European Cosmetic Product Notification Portal registration complete.' }
                 ].map((item, i) => (
                     <CertificationItem key={i} item={item} logo={logos[i]} />
                 ))}
