@@ -23,10 +23,21 @@ export const InquiryPage = () => {
         });
         setFormData({ name: '', email: '', message: '' });
       } else {
-        const data = await response.json().catch(() => ({}));
+        let errorMessage = 'Failed to send message.';
+        try {
+          const text = await response.text();
+          try {
+            const data = JSON.parse(text);
+            errorMessage = data.error || errorMessage;
+          } catch {
+            errorMessage = `${errorMessage} (Status ${response.status}: ${text.slice(0, 150)})`;
+          }
+        } catch {
+          errorMessage = `${errorMessage} (Status ${response.status})`;
+        }
         setSubmitStatus({
           type: 'error',
-          message: data.error || 'Failed to send message. Please try again later or contact us directly.',
+          message: errorMessage,
         });
       }
     } catch (error) {
