@@ -1,5 +1,6 @@
 {
   "name": "HERMEN Skincare",
   "description": "Premium Skincare, HERMEN",
-  "requestFramePermissions": ["camera"]
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

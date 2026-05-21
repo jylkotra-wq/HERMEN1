@@ -23,14 +23,18 @@ export const InquiryPage = () => {
         });
         setFormData({ name: '', email: '', message: '' });
       } else {
-        let errorMessage = 'Failed to send message.';
+        let errorMessage = 'Failed to send message. Please try again later.';
         try {
           const text = await response.text();
           try {
             const data = JSON.parse(text);
             errorMessage = data.error || errorMessage;
           } catch {
-            errorMessage = `${errorMessage} (Status ${response.status}: ${text.slice(0, 150)})`;
+            if (response.status === 404 || response.status === 405) {
+              errorMessage = `The API endpoint could not be reached (Status ${response.status}). If you just modified code, please try again in a few seconds.`;
+            } else {
+              errorMessage = `${errorMessage} (${text.slice(0, 120)})`;
+            }
           }
         } catch {
           errorMessage = `${errorMessage} (Status ${response.status})`;
