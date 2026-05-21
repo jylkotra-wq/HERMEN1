@@ -10,7 +10,7 @@ export const getChatbotResponse = async (messages: any[]) => {
     Here are the HERMEN products you should recommend based on user needs:
     - Daily Barrier Cream (50ml): Best for dry, combination, and sensitive skin. Focuses on hydration and calming the skin barrier.
     - Calming Serum (30ml): Best for sensitive, oily, and combination skin. Focuses on instant calming and soothing.
-    - Recovery Serum (30ml): Best for dry and combination skin. Focuses on anti-aging, hydration, and restoring skin balance.
+    - Balancing Serum (30ml): Best for dry and combination skin. Focuses on anti-aging, hydration, and restoring skin balance.
 
     Important Instructions:
     1. Detect the language of the user's message and respond in that same language (e.g., if the user writes in Korean, respond in Korean).

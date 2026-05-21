@@ -123,15 +123,20 @@ export const ProductDetailPage = () => {
       <div className="mt-24">
         <h3 className="text-[10px] tracking-[0.2em] font-bold uppercase mb-8">Product Details</h3>
         <div className="space-y-8">
-          {product.images.map((img, index) => (
-            <img 
-              key={index} 
-              src={img} 
-              alt={`${product.name} detail ${index}`} 
-              className="w-full h-auto object-contain"
-              referrerPolicy="no-referrer"
-            />
-          ))}
+          {product.images.map((img, index) => {
+            const isSmallImage = img.includes('calming-serum.png') || 
+                                 img.includes('balancing-serum.png') || 
+                                 img.includes('barrier-cream.png');
+            return (
+              <img 
+                key={index} 
+                src={img} 
+                alt={`${product.name} detail ${index}`} 
+                className={isSmallImage ? "w-1/2 mx-auto h-auto object-contain" : "w-full h-auto object-contain"}
+                referrerPolicy="no-referrer"
+              />
+            );
+          })}
         </div>
       </div>
     </div>
