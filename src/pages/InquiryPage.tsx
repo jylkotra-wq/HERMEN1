@@ -41,13 +41,13 @@ export const InquiryPage = () => {
         }
         setSubmitStatus({
           type: 'error',
-          message: errorMessage,
+          message: `${errorMessage}\nPlease contact us directly at hermen@hermen.co.kr`,
         });
       }
     } catch (error) {
       setSubmitStatus({
         type: 'error',
-        message: 'An error occurred while connecting to the server. Please try again.',
+        message: 'An error occurred while connecting to the server. Please check your connection or contact us directly. (hermen@hermen.co.kr)',
       });
     } finally {
       setIsSubmitting(false);
@@ -68,7 +68,7 @@ export const InquiryPage = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className={`p-4 rounded text-sm ${
+              className={`p-4 rounded text-sm whitespace-pre-line ${
                 submitStatus.type === 'success'
                   ? 'bg-green-50 text-green-800 border border-green-200'
                   : 'bg-red-50 text-red-800 border border-red-200'
