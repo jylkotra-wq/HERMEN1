@@ -57,12 +57,12 @@ export const HomePage = () => {
               >
                 Our Story
               </Link>
-              <a 
-                href="mailto:hermen@hermen.co.kr"
+              <Link 
+                to="/inquiry"
                 className="px-12 py-5 bg-white text-brand-primary text-[10px] tracking-[0.3em] font-bold uppercase hover:bg-brand-primary hover:text-white transition-all duration-700 min-w-[240px] text-center"
               >
                 INQUIRY
-              </a>
+              </Link>
             </div>
           </motion.div>
         </div>

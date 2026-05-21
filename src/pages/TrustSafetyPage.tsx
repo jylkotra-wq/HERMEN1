@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { useChat } from '../contexts/ChatContext';
@@ -23,12 +23,7 @@ const CertificationSection = () => {
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
-            {/* Added map image */}
-            <div className="w-full flex justify-center mb-8">
-                <img src="/logos/map.png" alt="Global Market Coverage" className="max-w-full h-auto rounded shadow-lg" />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl">
                 {[
                     { title: 'MoCRA (USA)', desc: 'US Cosmetic Regulation Modernization Act registration complete.' },
                     { title: 'CPNP (EU)', desc: 'European Cosmetic Product Notification Portal registration complete.' }

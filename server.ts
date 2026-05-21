@@ -3,6 +3,10 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,6 +20,39 @@ async function startServer() {
   // API routes
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
+  });
+
+  app.post("/api/send-email", async (req, res) => {
+    const { name, email, message } = req.body;
+    
+    // Check for SMTP configuration
+    if (!process.env.SMTP_HOST || !process.env.SMTP_PORT || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.error("SMTP environment variables are not configured.");
+      return res.status(500).json({ success: false, error: "Email service not configured. Please set SMTP environment variables." });
+    }
+
+    // Create transporter
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    try {
+      await transporter.sendMail({
+        from: process.env.SMTP_USER,
+        to: "hermen@hermen.co.kr",
+        subject: `Inquiry from ${name}`,
+        text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
+      });
+      res.json({ success: true });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false, error: "Failed to send email" });
+    }
   });
 
   // Vite middleware for development
