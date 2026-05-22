@@ -1,14 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export const BrandPage = () => {
+  const [imgSrc, setImgSrc] = useState('/brand-philosophy.jpg');
+
+  const handleImageError = () => {
+    if (imgSrc === '/brand-philosophy.jpg') {
+      // Try PNG format if JPG isn't found
+      setImgSrc('/brand-philosophy.png');
+    } else if (imgSrc === '/brand-philosophy.png') {
+      // Try JPEG format
+      setImgSrc('/brand-philosophy.jpeg');
+    } else if (imgSrc === '/brand-philosophy.jpeg') {
+      // Fallback to default Unsplash image if all local files are missing
+      setImgSrc('https://images.unsplash.com/photo-1612817288484-6f916006741a?auto=format&fit=crop&q=80&w=1200');
+    }
+  };
+
   return (
     <div className="pt-32 pb-20 px-6 max-w-4xl mx-auto text-center">
       <h1 className="text-5xl font-light tracking-tighter mb-12">Our Philosophy</h1>
       <div className="aspect-video mb-16 overflow-hidden bg-brand-secondary flex items-center justify-center">
         <img 
-          src="https://images.unsplash.com/photo-1612817288484-6f916006741a?auto=format&fit=crop&q=80&w=1200" 
+          src={imgSrc} 
           alt="Brand Philosophy" 
           className="w-full h-full object-cover"
+          onError={handleImageError}
           referrerPolicy="no-referrer"
         />
       </div>

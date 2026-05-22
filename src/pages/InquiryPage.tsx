@@ -86,7 +86,7 @@ export const InquiryPage = () => {
             required
             disabled={isSubmitting}
             className="w-full p-3 bg-white border border-gray-200 focus:border-brand-primary outline-none transition-colors duration-300"
-            placeholder="John Doe"
+            placeholder="Your name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />

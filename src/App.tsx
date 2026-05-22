@@ -30,8 +30,12 @@ function AppContent() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    // Log page view to Analytics
-    logEvent(analytics, 'page_view', { page_path: location.pathname });
+    // Log page view to Analytics Safely
+    try {
+      logEvent(analytics, 'page_view', { page_path: location.pathname });
+    } catch (e) {
+      console.warn("Analytics blocked or not supported in this environment:", e);
+    }
   }, [location.pathname]);
 
   return (

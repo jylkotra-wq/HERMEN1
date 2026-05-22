@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import logo from '../../../public/logo.png';
 
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -33,9 +32,9 @@ export const Header = () => {
       isScrolled ? "bg-white py-4 shadow-sm" : "bg-transparent py-6"
     )}>
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-3 items-center">
-        <Link to="/" className="hover:opacity-70 transition-opacity flex items-center">
+        <Link to="/" className="hover:opacity-70 transition-opacity flex items-center w-fit">
           <img 
-            src={logo} 
+            src="/logo.png" 
             alt="HERMEN" 
             className="h-6 md:h-7 w-auto object-contain"
             referrerPolicy="no-referrer"
@@ -48,9 +47,10 @@ export const Header = () => {
               key={item.path}
               to={item.path}
               className={cn(
-                "text-xs tracking-[0.15em] font-medium transition-colors",
-                isWhite ? "text-white hover:text-white/70" : "text-black hover:text-black/70",
-                location.pathname === item.path ? (isWhite ? "text-white" : "text-black") : (isWhite ? "text-white/60" : "text-black/60")
+                "text-xs tracking-[0.15em] font-medium transition-colors duration-300",
+                location.pathname === item.path
+                  ? (isWhite ? "text-white font-semibold" : "text-brand-primary font-semibold")
+                  : (isWhite ? "text-white/60 hover:text-white" : "text-brand-primary/60 hover:text-brand-primary")
               )}
             >
               {item.name}
@@ -86,7 +86,10 @@ export const Header = () => {
                   key={item.path}
                   to={item.path}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-2xl font-light tracking-tighter text-left"
+                  className={cn(
+                    "text-2xl font-light tracking-tighter text-left transition-colors duration-300",
+                    location.pathname === item.path ? "text-brand-primary font-medium" : "text-brand-primary/60 hover:text-brand-primary"
+                  )}
                 >
                   {item.name}
                 </Link>

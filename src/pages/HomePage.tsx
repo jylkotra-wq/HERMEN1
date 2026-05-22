@@ -1,12 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { PRODUCTS } from '../constants';
-import logo from '../../public/logo.png';
 
 export const HomePage = () => {
   const navigate = useNavigate();
+  const [heroImgSrc, setHeroImgSrc] = useState('/home-hero.jpg');
+
+  const handleHeroImageError = () => {
+    if (heroImgSrc === '/home-hero.jpg') {
+      setHeroImgSrc('/home-hero.png');
+    } else if (heroImgSrc === '/home-hero.png') {
+      setHeroImgSrc('/home-hero.jpeg');
+    } else if (heroImgSrc === '/home-hero.jpeg') {
+      setHeroImgSrc('https://images.unsplash.com/photo-1617897903246-719242758050?auto=format&fit=crop&q=80&w=2000');
+    }
+  };
 
   return (
     <div className="w-full">
@@ -18,9 +28,10 @@ export const HomePage = () => {
           className="absolute inset-0 z-0"
         >
           <img 
-            src="https://images.unsplash.com/photo-1617897903246-719242758050?auto=format&fit=crop&q=80&w=2000" 
+            src={heroImgSrc} 
             alt="Luxury Skincare" 
             className="w-full h-full object-cover"
+            onError={handleHeroImageError}
             referrerPolicy="no-referrer"
           />
           <div className="absolute inset-0 bg-black/20" />
@@ -38,7 +49,7 @@ export const HomePage = () => {
             </span>
             <div className="mb-12 flex justify-center">
               <img 
-                src={logo} 
+                src="/logo.png" 
                 alt="HERMEN" 
                 className="h-16 md:h-28 w-auto object-contain"
                 referrerPolicy="no-referrer"
@@ -131,7 +142,7 @@ export const HomePage = () => {
             HERMEN's AI skin analysis algorithm analyzes your current skin condition and concerns to recommend the most suitable routine.
           </p>
           <Link 
-            to="/finder"
+            to="/analysis"
             className="px-12 py-5 bg-white text-brand-primary text-xs tracking-[0.2em] font-bold uppercase hover:bg-brand-accent hover:text-white transition-all duration-300 inline-block"
           >
             Start Solution FINDER
