@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Send, Sparkles, Bot, Camera } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { getChatbotResponse } from '../services/geminiService';
+import { saveChatLog } from '../lib/supabase';
 import Markdown from 'react-markdown';
 
 interface Message {
@@ -20,6 +21,28 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Generate a distinct sessionId when the chat is opened or initialized
+  const [sessionId] = useState(() => {
+    const existing = sessionStorage.getItem('hermen_chat_session_id');
+    if (existing) return existing;
+    const newId = 'session_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+    sessionStorage.setItem('hermen_chat_session_id', newId);
+    return newId;
+  });
+
+  // Save the initial greeting to Supabase if it's a completely new session
+  useEffect(() => {
+    const greeted = sessionStorage.getItem(`hermen_greeted_${sessionId}`);
+    if (!greeted) {
+      saveChatLog({
+        session_id: sessionId,
+        sender: 'bot',
+        text: "Hello! I am the **HERMEN AI Concierge**. How can I assist you with your skincare journey today? If you upload a selfie, I can analyze your skin type and concerns. Please feel free to speak in your preferred language."
+      });
+      sessionStorage.setItem(`hermen_greeted_${sessionId}`, 'true');
+    }
+  }, [sessionId]);
 
   useEffect(() => {
     if (isOpen && initialMessage) {
@@ -42,10 +65,27 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
     setInput('');
     setIsTyping(true);
 
+    // Save user message to Supabase
+    saveChatLog({
+      session_id: sessionId,
+      sender: 'user',
+      text: text || '',
+      image: image || undefined
+    });
+
     try {
       const response = await getChatbotResponse([...messages, userMessage]);
       const botResponse: Message = { id: (Date.now() + 1).toString(), text: response, sender: 'bot' };
       setMessages(prev => [...prev, botResponse]);
+
+      // Save bot response to Supabase
+      saveChatLog({
+        session_id: sessionId,
+        sender: 'bot',
+        text: response
+      });
+    } catch (error) {
+      console.error('Error generating or saving bot response:', error);
     } finally {
       setIsTyping(false);
     }
@@ -115,36 +155,41 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-4 border-t border-black/10 flex gap-2 bg-white">
-            <input
-              type="file"
-              accept="image/*"
-              capture="user"
-              className="hidden"
-              ref={fileInputRef}
-              onChange={handleImageUpload}
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="p-2 rounded hover:bg-brand-secondary text-brand-primary"
-            >
-              <Camera size={18} />
-            </button>
-            <input
-              value={input}
-              disabled={isTyping}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSend(input)}
-              className="flex-grow p-2 border border-black/10 rounded text-sm focus:outline-none focus:border-brand-primary disabled:opacity-50"
-              placeholder={isTyping ? "Thinking..." : "Please enter your skin concerns..."}
-            />
-            <button 
-              onClick={() => handleSend(input)} 
-              disabled={isTyping || (!input.trim())}
-              className="bg-brand-primary text-white p-2 rounded disabled:opacity-50 hover:bg-brand-accent transition-colors"
-            >
-              <Send size={18} />
-            </button>
+          <div className="p-4 border-t border-black/10 bg-white flex flex-col gap-2">
+            <div className="text-[10px] text-gray-400 leading-relaxed text-center select-none border-b border-black/5 pb-2 mb-1">
+              <p>Conversations are saved to improve service. Starting a chat implies consent. Do not enter sensitive personal info.</p>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                capture="user"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 rounded hover:bg-brand-secondary text-brand-primary"
+              >
+                <Camera size={18} />
+              </button>
+              <input
+                value={input}
+                disabled={isTyping}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSend(input)}
+                className="flex-grow p-2 border border-black/10 rounded text-sm focus:outline-none focus:border-brand-primary disabled:opacity-50"
+                placeholder={isTyping ? "Thinking..." : "Please enter your skin concerns..."}
+              />
+              <button 
+                onClick={() => handleSend(input)} 
+                disabled={isTyping || (!input.trim())}
+                className="bg-brand-primary text-white p-2 rounded disabled:opacity-50 hover:bg-brand-accent transition-colors"
+              >
+                <Send size={18} />
+              </button>
+            </div>
           </div>
         </motion.div>
       )}

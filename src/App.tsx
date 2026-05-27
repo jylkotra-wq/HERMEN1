@@ -19,6 +19,7 @@ import { ProductDetailPage } from './pages/ProductDetailPage';
 import { BrandPage } from './pages/BrandPage';
 import { InquiryPage } from './pages/InquiryPage';
 import { TrustSafetyPage } from './pages/TrustSafetyPage';
+import { AdminChatsPage } from './pages/AdminChatsPage';
 
 // Types
 import { Product } from './constants';
@@ -59,6 +60,7 @@ function AppContent() {
               <Route path="/brand" element={<BrandPage />} />
               <Route path="/inquiry" element={<InquiryPage />} />
               <Route path="/trust" element={<TrustSafetyPage />} />
+              <Route path="/admin/chats" element={<AdminChatsPage />} />
             </Routes>
           </motion.div>
         </AnimatePresence>
