@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured, getChatSessions, getChatMessagesBySession, deleteChatSession, ChatLog } from '../lib/supabase';
-import { Bot, User, Trash2, Key, RefreshCw, Layers, Database, ExternalLink, ArrowLeft } from 'lucide-react';
+import { Bot, User, Trash2, Key, RefreshCw, Layers, Database, ExternalLink, ArrowLeft, X, ZoomIn } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const AdminChatsPage = () => {
@@ -14,6 +14,7 @@ export const AdminChatsPage = () => {
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [dbStatus, setDbStatus] = useState({ isSupabaseConfigured: false });
+  const [activeImage, setActiveImage] = useState<string | null>(null);
 
   // Authenticate with a simple default administrative passcode
   const handleAuth = (e: React.FormEvent) => {
@@ -248,8 +249,20 @@ export const AdminChatsPage = () => {
                           </div>
 
                           {msg.image && (
-                            <div className="mb-3 max-w-xs overflow-hidden rounded border border-black/10">
-                              <img src={msg.image} alt="Customer upload/selfie" className="w-full object-contain" />
+                            <div className="mb-3 max-w-xs overflow-hidden rounded border border-black/10 bg-black/5">
+                              <div 
+                                className="relative group cursor-zoom-in overflow-hidden" 
+                                onClick={() => setActiveImage(msg.image || null)}
+                              >
+                                <img 
+                                  src={msg.image} 
+                                  alt="Customer upload/selfie" 
+                                  className="w-full object-contain transition-transform duration-300 group-hover:scale-105" 
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center text-white text-xs font-bold gap-1.5 uppercase tracking-wider backdrop-blur-[1px]">
+                                  <ZoomIn size={14} /> See Enlarged Photo
+                                </div>
+                              </div>
                               <p className="p-1.5 text-center text-[10px] font-mono select-all bg-black/5 text-black">
                                 Submitted Skin-Analysis Selfie
                               </p>
@@ -282,6 +295,40 @@ export const AdminChatsPage = () => {
           </div>
         </div>
       </div>
+
+      {activeImage && (
+        <div 
+          className="fixed inset-0 z-[200] bg-black/85 flex flex-col items-center justify-center p-4 backdrop-blur-sm"
+          onClick={() => setActiveImage(null)}
+        >
+          <div className="absolute top-6 right-6 flex items-center gap-4 z-[210]">
+            <a 
+              href={activeImage} 
+              download={`hermen-selfie-${Date.now()}.png`}
+              onClick={(e) => e.stopPropagation()}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded text-xs uppercase tracking-widest font-bold border border-white/20 transition-all select-none"
+            >
+              Download Full Image
+            </a>
+            <button 
+              onClick={() => setActiveImage(null)}
+              className="p-2 text-white/75 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-all"
+            >
+              <X size={24} />
+            </button>
+          </div>
+          <div 
+            className="max-w-4xl max-h-[80vh] flex items-center justify-center p-2 bg-black/40 rounded-lg border border-white/10" 
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img 
+              src={activeImage} 
+              alt="Enlarged skin selfie" 
+              className="max-w-full max-h-[75vh] object-contain rounded-md shadow-2xl" 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
