@@ -17,11 +17,11 @@ export const AdminChatsPage = () => {
   // Authenticate with a simple default administrative passcode
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode.toLowerCase() === 'admin' || passcode === 'hermen123') {
+    if (passcode === 'hermen123') {
       setIsAuthenticated(true);
       setPasscodeError('');
     } else {
-      setPasscodeError('Invalid administrative passcode. (Try "admin")');
+      setPasscodeError('Invalid administrative passcode.');
     }
   };
 
@@ -97,7 +97,7 @@ export const AdminChatsPage = () => {
                 type="password"
                 value={passcode}
                 onChange={(e) => setPasscode(e.target.value)}
-                placeholder="Enter Admin Passcode (Default: admin)"
+                placeholder="Enter Admin Passcode"
                 className="w-full p-3 border border-gray-200 outline-none focus:border-brand-primary text-center tracking-widest text-sm bg-white"
                 autoFocus
               />
@@ -131,7 +131,7 @@ export const AdminChatsPage = () => {
             <p className="text-[11px] text-brand-primary/60 tracking-wider uppercase mt-1">
               {isSupabaseConfigured 
                 ? '● SUPABASE STORAGE SYNCED'
-                : '○ OFFLINE SIMULATION MODE (SUPABASE UNCONNECTED)'}
+                : '○ SUPABASE UNCONNECTED'}
             </p>
           </div>
           <div className="flex gap-3">
@@ -144,45 +144,6 @@ export const AdminChatsPage = () => {
             </button>
           </div>
         </div>
-
-        {/* Supabase SQL Setup Help banner if not configured yet */}
-        {!isSupabaseConfigured && (
-          <div className="mb-8 p-6 bg-amber-50 border border-amber-200 text-amber-900 rounded-sm">
-            <div className="flex items-start gap-4">
-              <Database className="text-amber-700 flex-shrink-0 mt-1" size={20} />
-              <div className="space-y-3">
-                <h3 className="font-bold text-sm text-amber-900">How to initialize Supabase for Vercel:</h3>
-                <p className="text-xs leading-relaxed text-amber-800">
-                  We have fully written the code to save and query chats from Supabase! To make this real:
-                </p>
-                <div className="text-xs space-y-2">
-                  <p><strong>Step 1. Configure Environment Variables:</strong> Set up these environment variables in Vercel settings (or in `.env`):</p>
-                  <pre className="bg-amber-100/70 p-3 rounded font-mono text-[11px] overflow-x-auto text-amber-900">
-{`SUPABASE_URL=your_supabase_project_url (e.g. https://xxxxxx.supabase.co)
-SUPABASE_ANON_KEY=your_supabase_anon_public_key`}
-                  </pre>
-                  <p className="mt-2"><strong>Step 2. SQL Schema Setup:</strong> Create the chat logging table inside your Supabase SQL Editor:</p>
-                  <pre className="bg-amber-100/70 p-3 rounded font-mono text-[11px] overflow-x-auto text-amber-900">
-{`create table hermen_chat_logs (
-  id bigint generated always as identity primary key,
-  session_id text not null,
-  sender text not null, -- 'user' or 'bot'
-  text text,
-  image text,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
-);
-
--- Enable select & insert public Access Row Level Security policies
-alter table hermen_chat_logs enable row level security;
-create policy "Allow Anonymous Insert" on hermen_chat_logs for insert with check (true);
-create policy "Allow Anonymous Select" on hermen_chat_logs for select using (true);
-create policy "Allow Anonymous Delete" on hermen_chat_logs for delete using (true);`}
-                  </pre>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* List of sessions (Left col) */}
