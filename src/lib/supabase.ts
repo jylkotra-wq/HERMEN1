@@ -1,22 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
-
-// Access variables either from process.env (Vite define / node / vercel) or import.meta.env
-const supabaseUrl = 
-  (typeof process !== 'undefined' && process.env?.SUPABASE_URL) || 
-  import.meta.env.VITE_SUPABASE_URL || 
-  '';
-
-const supabaseAnonKey = 
-  (typeof process !== 'undefined' && process.env?.SUPABASE_ANON_KEY) || 
-  import.meta.env.VITE_SUPABASE_ANON_KEY || 
-  '';
-
-export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
-
-export const supabase = isSupabaseConfigured 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
-
 export interface ChatLog {
   id?: number;
   session_id: string;
@@ -26,14 +7,31 @@ export interface ChatLog {
   created_at?: string;
 }
 
+// We now delegate configuration and database queries to the Express server proxy.
+// Therefore, we treat it as active so that client browsers always send data to the server.
+export const isSupabaseConfigured = true; 
+export const supabase = null; 
+
 /**
- * Saves a message log to Supabase.
- * If Supabase is not configured, it will log to console and return success.
+ * Saves a message log to our backend server, which writes directly to Supabase.
  */
 export async function saveChatLog(log: ChatLog): Promise<{ success: boolean; error?: any }> {
-  if (!isSupabaseConfigured || !supabase) {
-    console.log('[Supabase Demo Mode - Message Safe]:', log);
-    // Mimic localStorage backup for demo/offline resilience when Supabase isn't linked yet
+  try {
+    const response = await fetch('/api/chats/save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(log),
+    });
+    if (!response.ok) {
+      const data = await response.json();
+      return { success: false, error: data.error };
+    }
+    return { success: true };
+  } catch (err) {
+    console.warn('[Proxy Fallback]: saving directly to localStorage as backup', err);
+    // Client-side backup fallback
     try {
       const backupKey = `hermen_chat_backup_${log.session_id}`;
       const existing = localStorage.getItem(backupKey);
@@ -45,34 +43,22 @@ export async function saveChatLog(log: ChatLog): Promise<{ success: boolean; err
     }
     return { success: true };
   }
-
-  try {
-    const { error } = await supabase
-      .from('hermen_chat_logs')
-      .insert({
-        session_id: log.session_id,
-        sender: log.sender,
-        text: log.text || '',
-        image: log.image || null
-      });
-
-    if (error) {
-      console.error('Supabase save error:', error);
-      return { success: false, error };
-    }
-    return { success: true };
-  } catch (err) {
-    console.error('Supabase exception:', err);
-    return { success: false, error: err };
-  }
 }
 
 /**
- * Fetches unique chat session groups.
+ * Fetches unique chat session groups from the backend server.
  */
 export async function getChatSessions(): Promise<string[]> {
-  if (!isSupabaseConfigured || !supabase) {
-    // Return mock keys from local storage backups
+  try {
+    const response = await fetch('/api/chats/sessions');
+    if (!response.ok) {
+      throw new Error('Failed to fetch sessions');
+    }
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error('Failed to fetch chat sessions:', err);
+    // If offline or dev server is booting, read from client-side backup
     const sessions = new Set<string>();
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -80,44 +66,30 @@ export async function getChatSessions(): Promise<string[]> {
         sessions.add(key.replace('hermen_chat_backup_', ''));
       }
     }
-    // If empty, return a default demo session
     if (sessions.size === 0) {
       return ['demo-session-skincare-concerns'];
     }
     return Array.from(sessions);
   }
-
-  try {
-    const { data, error } = await supabase
-      .from('hermen_chat_logs')
-      .select('session_id')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error loading chat session ids:', error);
-      return [];
-    }
-
-    // Filter distinct values (Postgres distinct can be tricky, simple array mapping works beautifully)
-    const uniqueIds = Array.from(new Set(data.map(item => item.session_id)));
-    return uniqueIds;
-  } catch (error) {
-    console.error('Supabase exception fetching sessions:', error);
-    return [];
-  }
 }
 
 /**
- * Loads all messages from a specific chat session.
+ * Loads all messages from a specific chat session from the backend server.
  */
 export async function getChatMessagesBySession(sessionId: string): Promise<ChatLog[]> {
-  if (!isSupabaseConfigured || !supabase) {
+  try {
+    const response = await fetch(`/api/chats/messages/${sessionId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch messages');
+    }
+    return await response.json();
+  } catch (err) {
+    console.error(`Failed to fetch messages for session ${sessionId}:`, err);
     const backupKey = `hermen_chat_backup_${sessionId}`;
     const existing = localStorage.getItem(backupKey);
     if (existing) {
       return JSON.parse(existing);
     }
-    // Static demo data for preview
     if (sessionId === 'demo-session-skincare-concerns') {
       return [
         { session_id: sessionId, sender: 'bot', text: 'Hello! I am the **HERMEN AI Concierge**. How can I assist you today?', created_at: new Date(Date.now() - 600000).toISOString() },
@@ -127,46 +99,25 @@ export async function getChatMessagesBySession(sessionId: string): Promise<ChatL
     }
     return [];
   }
-
-  try {
-    const { data, error } = await supabase
-      .from('hermen_chat_logs')
-      .select('*')
-      .eq('session_id', sessionId)
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      console.error('Error loading messages:', error);
-      return [];
-    }
-
-    return data as ChatLog[];
-  } catch (error) {
-    console.error('Supabase exception loading messages:', error);
-    return [];
-  }
 }
 
 /**
- * Permanently deletes a single chat session.
+ * Permanently deletes a single chat session via the backend server.
  */
 export async function deleteChatSession(sessionId: string) {
-  if (!isSupabaseConfigured || !supabase) {
+  try {
+    const response = await fetch(`/api/chats/sessions/${sessionId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { success: false, error: errorData.error };
+    }
     localStorage.removeItem(`hermen_chat_backup_${sessionId}`);
     return { success: true };
-  }
-
-  try {
-    const { error } = await supabase
-      .from('hermen_chat_logs')
-      .delete()
-      .eq('session_id', sessionId);
-
-    if (error) {
-      return { success: false, error };
-    }
-    return { success: true };
   } catch (error) {
-    return { success: false, error };
+    console.error('Failed to delete chat session:', error);
+    localStorage.removeItem(`hermen_chat_backup_${sessionId}`);
+    return { success: true };
   }
 }

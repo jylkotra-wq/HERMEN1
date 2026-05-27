@@ -5,11 +5,39 @@ import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import { createClient } from "@supabase/supabase-js";
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+interface ChatLog {
+  id?: number;
+  session_id: string;
+  sender: 'user' | 'bot';
+  text: string;
+  image?: string;
+  created_at?: string;
+}
+
+// In-memory fallback on the server so that even before Supabase is connected,
+// all users' messages can be grouped and read in the Admin Dashboard inside the preview.
+const memoryChatLogs: ChatLog[] = [];
+
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || "";
+const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
+
+let supabaseServer: any = null;
+if (isSupabaseConfigured) {
+  try {
+    supabaseServer = createClient(supabaseUrl, supabaseAnonKey);
+    console.log("Supabase Client initialized successfully on Server.");
+  } catch (err) {
+    console.error("Failed to initialize Supabase on Server:", err);
+  }
+}
 
 async function startServer() {
   const app = express();
@@ -20,6 +48,147 @@ async function startServer() {
   // API routes
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
+  });
+
+  // Supabase proxy and synchronization endpoints
+  app.get("/api/chats/status", (req, res) => {
+    res.json({ isSupabaseConfigured });
+  });
+
+  // Save chat logs sent by customers or bots
+  app.post("/api/chats/save", async (req, res) => {
+    const { session_id, sender, text, image } = req.body;
+    const log: ChatLog = {
+      session_id,
+      sender,
+      text: text || "",
+      image: image || "",
+      created_at: new Date().toISOString()
+    };
+
+    // Store in memory cache for immediate admin views across multiple sessions
+    memoryChatLogs.push(log);
+
+    if (isSupabaseConfigured && supabaseServer) {
+      try {
+        const { error } = await supabaseServer
+          .from("hermen_chat_logs")
+          .insert({
+            session_id,
+            sender,
+            text: text || "",
+            image: image || null
+          });
+        if (error) {
+          console.error("Server Supabase save error:", error);
+          return res.status(500).json({ success: false, error: error.message });
+        }
+        return res.json({ success: true, stored: 'supabase' });
+      } catch (err: any) {
+        console.error("Server Supabase exception:", err);
+        return res.status(500).json({ success: false, error: err.message });
+      }
+    } else {
+      console.log("[Server Memory Save]: Log cached in server-wide memory.");
+      return res.json({ success: true, stored: 'memory' });
+    }
+  });
+
+  // Load unique chat session IDs
+  app.get("/api/chats/sessions", async (req, res) => {
+    if (isSupabaseConfigured && supabaseServer) {
+      try {
+        const { data, error } = await supabaseServer
+          .from("hermen_chat_logs")
+          .select("session_id, created_at")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Server Supabase sessions fetch error:", error);
+          return res.status(500).json({ error: error.message });
+        }
+
+        const uniqueSessions = Array.from(new Set(data.map((item: any) => item.session_id)));
+        return res.json(uniqueSessions);
+      } catch (err: any) {
+        console.error("Server Supabase sessions exception:", err);
+        return res.status(500).json({ error: err.message });
+      }
+    } else {
+      // Deliver centralized in-memory session list (newest first)
+      const reversedLogs = [...memoryChatLogs].reverse();
+      const uniqueSessions = Array.from(new Set(reversedLogs.map(log => log.session_id)));
+      if (uniqueSessions.length === 0) {
+        // Fallback to static demo if nothing exists in-memory yet
+        return res.json(["demo-session-skincare-concerns"]);
+      }
+      return res.json(uniqueSessions);
+    }
+  });
+
+  // Get messages inside a given session ID
+  app.get("/api/chats/messages/:sessionId", async (req, res) => {
+    const { sessionId } = req.params;
+    if (isSupabaseConfigured && supabaseServer) {
+      try {
+        const { data, error } = await supabaseServer
+          .from("hermen_chat_logs")
+          .select("*")
+          .eq("session_id", sessionId)
+          .order("created_at", { ascending: true });
+
+        if (error) {
+          console.error("Server Supabase fetch messages error:", error);
+          return res.status(500).json({ error: error.message });
+        }
+        return res.json(data);
+      } catch (err: any) {
+        console.error("Server Supabase messages fetch exception:", err);
+        return res.status(500).json({ error: err.message });
+      }
+    } else {
+      const sessionMessages = memoryChatLogs.filter(log => log.session_id === sessionId);
+      if (sessionId === "demo-session-skincare-concerns" && sessionMessages.length === 0) {
+        return res.json([
+          { session_id: sessionId, sender: 'bot', text: 'Hello! I am the **HERMEN AI Concierge**. How can I assist you with your skin today?', created_at: new Date(Date.now() - 300000).toISOString() },
+          { session_id: sessionId, sender: 'user', text: 'I am experiencing dry patches around my cheeks.', created_at: new Date(Date.now() - 200000).toISOString() },
+          { session_id: sessionId, sender: 'bot', text: 'For dry patches, hydration is essential. I highly recommend trying our **Balancing Cream** daily.', created_at: new Date(Date.now() - 100000).toISOString() }
+        ]);
+      }
+      return res.json(sessionMessages);
+    }
+  });
+
+  // Delete a given chat session permanently
+  app.delete("/api/chats/sessions/:sessionId", async (req, res) => {
+    const { sessionId } = req.params;
+
+    // Purge from server memory
+    for (let i = memoryChatLogs.length - 1; i >= 0; i--) {
+      if (memoryChatLogs[i].session_id === sessionId) {
+        memoryChatLogs.splice(i, 1);
+      }
+    }
+
+    if (isSupabaseConfigured && supabaseServer) {
+      try {
+        const { error } = await supabaseServer
+          .from("hermen_chat_logs")
+          .delete()
+          .eq("session_id", sessionId);
+
+        if (error) {
+          console.error("Server Supabase delete session error:", error);
+          return res.status(500).json({ success: false, error: error.message });
+        }
+        return res.json({ success: true, deleted: 'supabase-db' });
+      } catch (err: any) {
+        console.error("Server Supabase delete session exception:", err);
+        return res.status(500).json({ success: false, error: err.message });
+      }
+    } else {
+      return res.json({ success: true, deleted: 'memory' });
+    }
   });
 
   app.post("/api/send-email", async (req, res) => {
