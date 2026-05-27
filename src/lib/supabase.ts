@@ -78,7 +78,7 @@ export async function getChatSessions(): Promise<string[]> {
  */
 export async function getChatMessagesBySession(sessionId: string): Promise<ChatLog[]> {
   try {
-    const response = await fetch(`/api/chats/messages/${sessionId}`);
+    const response = await fetch(`/api/chats/messages?sessionId=${encodeURIComponent(sessionId)}`);
     if (!response.ok) {
       throw new Error('Failed to fetch messages');
     }
@@ -106,7 +106,7 @@ export async function getChatMessagesBySession(sessionId: string): Promise<ChatL
  */
 export async function deleteChatSession(sessionId: string) {
   try {
-    const response = await fetch(`/api/chats/sessions/${sessionId}`, {
+    const response = await fetch(`/api/chats/sessions?sessionId=${encodeURIComponent(sessionId)}`, {
       method: 'DELETE',
     });
     if (!response.ok) {

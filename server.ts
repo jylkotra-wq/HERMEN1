@@ -126,7 +126,43 @@ async function startServer() {
     }
   });
 
-  // Get messages inside a given session ID
+  // Get messages inside a given session ID (handles both path parameter and query parameter formats)
+  app.get("/api/chats/messages", async (req, res) => {
+    const sessionId = (req.query.sessionId as string) || (req.params as any).sessionId;
+    if (!sessionId) {
+      return res.status(400).json({ error: "Missing sessionId parameter" });
+    }
+
+    if (isSupabaseConfigured && supabaseServer) {
+      try {
+        const { data, error } = await supabaseServer
+          .from("hermen_chat_logs")
+          .select("*")
+          .eq("session_id", sessionId)
+          .order("created_at", { ascending: true });
+
+        if (error) {
+          console.error("Server Supabase fetch messages error:", error);
+          return res.status(500).json({ error: error.message });
+        }
+        return res.json(data);
+      } catch (err: any) {
+        console.error("Server Supabase messages fetch exception:", err);
+        return res.status(500).json({ error: err.message });
+      }
+    } else {
+      const sessionMessages = memoryChatLogs.filter(log => log.session_id === sessionId);
+      if (sessionId === "demo-session-skincare-concerns" && sessionMessages.length === 0) {
+        return res.json([
+          { session_id: sessionId, sender: 'bot', text: 'Hello! I am the **HERMEN AI Concierge**. How can I assist you with your skin today?', created_at: new Date(Date.now() - 300000).toISOString() },
+          { session_id: sessionId, sender: 'user', text: 'I am experiencing dry patches around my cheeks.', created_at: new Date(Date.now() - 200000).toISOString() },
+          { session_id: sessionId, sender: 'bot', text: 'For dry patches, hydration is essential. I highly recommend trying our **Balancing Cream** daily.', created_at: new Date(Date.now() - 100000).toISOString() }
+        ]);
+      }
+      return res.json(sessionMessages);
+    }
+  });
+
   app.get("/api/chats/messages/:sessionId", async (req, res) => {
     const { sessionId } = req.params;
     if (isSupabaseConfigured && supabaseServer) {
@@ -159,7 +195,41 @@ async function startServer() {
     }
   });
 
-  // Delete a given chat session permanently
+  // Delete a given chat session permanently (handles query or path parameters)
+  app.delete("/api/chats/sessions", async (req, res) => {
+    const sessionId = (req.query.sessionId as string) || (req.params as any).sessionId;
+    if (!sessionId) {
+      return res.status(400).json({ success: false, error: "Missing sessionId parameter" });
+    }
+
+    // Purge from server memory
+    for (let i = memoryChatLogs.length - 1; i >= 0; i--) {
+      if (memoryChatLogs[i].session_id === sessionId) {
+        memoryChatLogs.splice(i, 1);
+      }
+    }
+
+    if (isSupabaseConfigured && supabaseServer) {
+      try {
+        const { error } = await supabaseServer
+          .from("hermen_chat_logs")
+          .delete()
+          .eq("session_id", sessionId);
+
+        if (error) {
+          console.error("Server Supabase delete session error:", error);
+          return res.status(500).json({ success: false, error: error.message });
+        }
+        return res.json({ success: true, deleted: 'supabase-db' });
+      } catch (err: any) {
+        console.error("Server Supabase delete session exception:", err);
+        return res.status(500).json({ success: false, error: err.message });
+      }
+    } else {
+      return res.json({ success: true, deleted: 'memory' });
+    }
+  });
+
   app.delete("/api/chats/sessions/:sessionId", async (req, res) => {
     const { sessionId } = req.params;
 

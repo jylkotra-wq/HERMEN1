@@ -13,6 +13,7 @@ export const AdminChatsPage = () => {
   const [messages, setMessages] = useState<ChatLog[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [dbStatus, setDbStatus] = useState({ isSupabaseConfigured: false });
 
   // Authenticate with a simple default administrative passcode
   const handleAuth = (e: React.FormEvent) => {
@@ -22,6 +23,18 @@ export const AdminChatsPage = () => {
       setPasscodeError('');
     } else {
       setPasscodeError('Invalid administrative passcode.');
+    }
+  };
+
+  const checkDbStatus = async () => {
+    try {
+      const response = await fetch('/api/chats/status');
+      if (response.ok) {
+        const data = await response.json();
+        setDbStatus(data);
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -54,6 +67,7 @@ export const AdminChatsPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
+      checkDbStatus();
       loadSessionsList();
     }
   }, [isAuthenticated]);
@@ -129,9 +143,9 @@ export const AdminChatsPage = () => {
           <div>
             <h1 className="text-2xl font-bold tracking-widest text-brand-primary uppercase">HERMEN AI Concierge Manager</h1>
             <p className="text-[11px] text-brand-primary/60 tracking-wider uppercase mt-1">
-              {isSupabaseConfigured 
+              {dbStatus.isSupabaseConfigured 
                 ? '● SUPABASE STORAGE SYNCED'
-                : '○ SUPABASE UNCONNECTED'}
+                : '○ SUPABASE UNCONNECTED (USING CENTRAL SERVER CACHE)'}
             </p>
           </div>
           <div className="flex gap-3">
