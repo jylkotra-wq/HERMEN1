@@ -26,7 +26,46 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
   const [sessionId] = useState(() => {
     const existing = sessionStorage.getItem('hermen_chat_session_id');
     if (existing) return existing;
-    const newId = 'session_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+
+    // 1. Get local date and time format (YYYYMMDD_HHMMSS)
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const timeStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+
+    // 2. Identify/Estimate connecting country based on language preferences & timezone
+    let countryCode = '';
+    try {
+      const lang = navigator.language || '';
+      const parts = lang.split('-');
+      if (parts.length > 1) {
+        const code = parts[parts.length - 1].toUpperCase();
+        if (code.length === 2) countryCode = code;
+      } else if (lang.length === 2) {
+        countryCode = lang.toUpperCase();
+      }
+    } catch (e) {}
+
+    if (!countryCode) {
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+        if (tz.includes('Seoul')) countryCode = 'KR';
+        else if (tz.includes('Tokyo')) countryCode = 'JP';
+        else if (tz.includes('Shanghai') || tz.includes('Beijing')) countryCode = 'CN';
+        else if (tz.includes('London')) countryCode = 'GB';
+        else if (tz.includes('Paris') || tz.includes('Berlin') || tz.includes('Europe/')) countryCode = 'EU';
+        else if (tz.includes('America/')) countryCode = 'US';
+      } catch (e) {}
+    }
+
+    if (!countryCode) {
+      countryCode = 'UNKNOWN';
+    }
+
+    // 3. Simple random salt for absolute uniqueness
+    const randomSalt = Math.random().toString(36).substring(2, 7);
+
+    // Final signature: e.g. session_20260605_184650_KR_ab3f
+    const newId = `session_${timeStr}_${countryCode}_${randomSalt}`;
     sessionStorage.setItem('hermen_chat_session_id', newId);
     return newId;
   });
