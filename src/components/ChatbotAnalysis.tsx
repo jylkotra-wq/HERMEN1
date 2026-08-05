@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Send, Sparkles, Bot, Camera } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { getChatbotResponse } from '../services/geminiService';
 import { saveChatLog } from '../lib/supabase';
@@ -169,10 +170,38 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
                   {msg.image && <img src={msg.image} alt="User upload" className="rounded mb-2 max-w-full" />}
                   {msg.text && (
                     <div className={cn(
-                      "prose prose-sm max-w-none prose-p:leading-relaxed prose-a:text-blue-600 prose-a:underline",
+                      "prose prose-sm max-w-none prose-p:leading-relaxed prose-a:text-brand-primary prose-a:font-semibold prose-a:underline hover:prose-a:text-brand-accent",
                       msg.sender === 'user' ? "prose-p:text-brand-primary" : "prose-p:text-brand-primary"
                     )}>
-                      <Markdown>{msg.text}</Markdown>
+                      <Markdown
+                        components={{
+                          a: ({ href, children }) => {
+                            if (href && href.startsWith('/')) {
+                              return (
+                                <Link
+                                  to={href}
+                                  onClick={() => onClose()}
+                                  className="text-brand-primary font-bold underline hover:text-brand-accent transition-colors cursor-pointer"
+                                >
+                                  {children}
+                                </Link>
+                              );
+                            }
+                            return (
+                              <a
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-brand-primary font-bold underline hover:text-brand-accent transition-colors"
+                              >
+                                {children}
+                              </a>
+                            );
+                          }
+                        }}
+                      >
+                        {msg.text}
+                      </Markdown>
                     </div>
                   )}
                 </div>
