@@ -16,9 +16,9 @@ export const getChatbotResponse = async (messages: any[]) => {
        - Download B2B Dossier & Wholesale Quote request options available.
        - Page link to share: [Trust & Science Page](/trust)
     2. Products & Shop (/shop):
-       - Daily Barrier Cream (50ml) [₩38,000]: Best for dry, combination, and sensitive skin. Protects skin barrier and maintains moisture.
-       - Calming Serum (30ml) [₩35,000]: Best for sensitive, oily, and combination skin. Instant soothing and calming.
-       - Balancing Serum (30ml) [₩42,000]: Best for dry and combination skin. Anti-aging, hydration, restoring skin balance.
+       - Daily Barrier Cream (50ml): Best for dry, combination, and sensitive skin. Protects skin barrier and maintains moisture.
+       - Calming Serum (30ml): Best for sensitive, oily, and combination skin. Instant soothing and calming.
+       - Balancing Serum (30ml): Best for dry and combination skin. Anti-aging, hydration, restoring skin balance.
        - Page link to share: [Shop Products](/shop)
     3. Brand Philosophy (/brand):
        - "Preserve the moment." Designed to build care for skin that is built to last. 25 years of skincare expertise and data-driven Agile R&D.

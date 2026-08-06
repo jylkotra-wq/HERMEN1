@@ -2,7 +2,7 @@ export interface Product {
   id: string;
   name: string;
   description: string;
-  price: number;
+  price?: number;
   image: string;
   images: string[];
   category: 'toner' | 'serum' | 'cream' | 'cleanser';
@@ -15,7 +15,6 @@ export const PRODUCTS: Product[] = [
     id: '1',
     name: 'Daily Barrier Cream (50ml)',
     description: 'A daily cream that protects the skin barrier and maintains moisture.',
-    price: 38000,
     image: '/barrier-cream.png',
     images: ['/barrier-cream.png'],
     category: 'cream',
@@ -26,7 +25,6 @@ export const PRODUCTS: Product[] = [
     id: '2',
     name: 'Calming Serum (30ml)',
     description: 'A highly concentrated serum that instantly calms sensitive skin.',
-    price: 35000,
     image: '/calming-serum.png',
     images: ['/calming-serum.png','/calming-serum1.jpg', '/calming-serum2.jpg', '/calming-serum3.jpg'],
     category: 'serum',
@@ -37,7 +35,6 @@ export const PRODUCTS: Product[] = [
     id: '3',
     name: 'Balancing Serum (30ml)',
     description: 'A balancing serum that restores skin balance and adds vitality.',
-    price: 42000,
     image: '/balancing-serum.png',
     images: ['/balancing-serum.png'],
     category: 'serum',
