@@ -95,6 +95,62 @@ async function startServer() {
     }
   });
 
+  // Helper: Fetch messages for a session ID with Supabase/memory fallbacks
+  async function getMessagesForSession(sessionId: string) {
+    if (isSupabaseConfigured && supabaseServer) {
+      try {
+        const { data, error } = await supabaseServer
+          .from("hermen_chat_logs")
+          .select("*")
+          .eq("session_id", sessionId)
+          .order("created_at", { ascending: true });
+
+        if (!error && data && data.length > 0) {
+          return data;
+        }
+        if (error) {
+          console.warn("Server Supabase fetch messages error (using memory fallback):", error.message);
+        }
+      } catch (err: any) {
+        console.warn("Server Supabase messages fetch exception (using memory fallback):", err?.message);
+      }
+    }
+
+    const sessionMessages = memoryChatLogs.filter(log => log.session_id === sessionId);
+    if (sessionId === "demo-session-skincare-concerns" && sessionMessages.length === 0) {
+      return [
+        { session_id: sessionId, sender: 'bot', text: 'Hello! I am the **HERMEN AI Concierge**. How can I assist you with your skin today?', created_at: new Date(Date.now() - 300000).toISOString() },
+        { session_id: sessionId, sender: 'user', text: 'I am experiencing dry patches around my cheeks.', created_at: new Date(Date.now() - 200000).toISOString() },
+        { session_id: sessionId, sender: 'bot', text: 'For dry patches, hydration is essential. I highly recommend trying our **Balancing Cream** daily.', created_at: new Date(Date.now() - 100000).toISOString() }
+      ];
+    }
+    return sessionMessages;
+  }
+
+  // Helper: Delete a session ID from memory and Supabase
+  async function deleteSession(sessionId: string) {
+    for (let i = memoryChatLogs.length - 1; i >= 0; i--) {
+      if (memoryChatLogs[i].session_id === sessionId) {
+        memoryChatLogs.splice(i, 1);
+      }
+    }
+
+    if (isSupabaseConfigured && supabaseServer) {
+      try {
+        const { error } = await supabaseServer
+          .from("hermen_chat_logs")
+          .delete()
+          .eq("session_id", sessionId);
+
+        if (error) {
+          console.warn("Server Supabase delete session warning (using memory fallback):", error.message);
+        }
+      } catch (err: any) {
+        console.warn("Server Supabase delete session exception (using memory fallback):", err?.message);
+      }
+    }
+  }
+
   // Load unique chat session IDs
   app.get("/api/chats/sessions", async (req, res) => {
     if (isSupabaseConfigured && supabaseServer) {
@@ -114,141 +170,44 @@ async function startServer() {
       }
     }
 
-    // Deliver centralized in-memory session list (newest first)
     const reversedLogs = [...memoryChatLogs].reverse();
     const uniqueSessions = Array.from(new Set(reversedLogs.map(log => log.session_id)));
     if (uniqueSessions.length === 0) {
-      // Fallback to static demo if nothing exists in-memory yet
       return res.json(["demo-session-skincare-concerns"]);
     }
     return res.json(uniqueSessions);
   });
 
-  // Get messages inside a given session ID (handles both path parameter and query parameter formats)
+  // Get messages inside a given session ID (supports query param or path param)
   app.get("/api/chats/messages", async (req, res) => {
     const sessionId = (req.query.sessionId as string) || (req.params as any).sessionId;
     if (!sessionId) {
       return res.status(400).json({ error: "Missing sessionId parameter" });
     }
-
-    if (isSupabaseConfigured && supabaseServer) {
-      try {
-        const { data, error } = await supabaseServer
-          .from("hermen_chat_logs")
-          .select("*")
-          .eq("session_id", sessionId)
-          .order("created_at", { ascending: true });
-
-        if (!error && data && data.length > 0) {
-          return res.json(data);
-        }
-        if (error) {
-          console.warn("Server Supabase fetch messages error (using memory fallback):", error.message);
-        }
-      } catch (err: any) {
-        console.warn("Server Supabase messages fetch exception (using memory fallback):", err?.message);
-      }
-    }
-
-    const sessionMessages = memoryChatLogs.filter(log => log.session_id === sessionId);
-    if (sessionId === "demo-session-skincare-concerns" && sessionMessages.length === 0) {
-      return res.json([
-        { session_id: sessionId, sender: 'bot', text: 'Hello! I am the **HERMEN AI Concierge**. How can I assist you with your skin today?', created_at: new Date(Date.now() - 300000).toISOString() },
-        { session_id: sessionId, sender: 'user', text: 'I am experiencing dry patches around my cheeks.', created_at: new Date(Date.now() - 200000).toISOString() },
-        { session_id: sessionId, sender: 'bot', text: 'For dry patches, hydration is essential. I highly recommend trying our **Balancing Cream** daily.', created_at: new Date(Date.now() - 100000).toISOString() }
-      ]);
-    }
-    return res.json(sessionMessages);
+    const messages = await getMessagesForSession(sessionId);
+    return res.json(messages);
   });
 
   app.get("/api/chats/messages/:sessionId", async (req, res) => {
     const { sessionId } = req.params;
-    if (isSupabaseConfigured && supabaseServer) {
-      try {
-        const { data, error } = await supabaseServer
-          .from("hermen_chat_logs")
-          .select("*")
-          .eq("session_id", sessionId)
-          .order("created_at", { ascending: true });
-
-        if (!error && data && data.length > 0) {
-          return res.json(data);
-        }
-        if (error) {
-          console.warn("Server Supabase fetch messages error (using memory fallback):", error.message);
-        }
-      } catch (err: any) {
-        console.warn("Server Supabase messages fetch exception (using memory fallback):", err?.message);
-      }
-    }
-
-    const sessionMessages = memoryChatLogs.filter(log => log.session_id === sessionId);
-    if (sessionId === "demo-session-skincare-concerns" && sessionMessages.length === 0) {
-      return res.json([
-        { session_id: sessionId, sender: 'bot', text: 'Hello! I am the **HERMEN AI Concierge**. How can I assist you with your skin today?', created_at: new Date(Date.now() - 300000).toISOString() },
-        { session_id: sessionId, sender: 'user', text: 'I am experiencing dry patches around my cheeks.', created_at: new Date(Date.now() - 200000).toISOString() },
-        { session_id: sessionId, sender: 'bot', text: 'For dry patches, hydration is essential. I highly recommend trying our **Balancing Cream** daily.', created_at: new Date(Date.now() - 100000).toISOString() }
-      ]);
-    }
-    return res.json(sessionMessages);
+    const messages = await getMessagesForSession(sessionId);
+    return res.json(messages);
   });
 
-  // Delete a given chat session permanently (handles query or path parameters)
+  // Delete a given chat session permanently (supports query param or path param)
   app.delete("/api/chats/sessions", async (req, res) => {
     const sessionId = (req.query.sessionId as string) || (req.params as any).sessionId;
     if (!sessionId) {
       return res.status(400).json({ success: false, error: "Missing sessionId parameter" });
     }
-
-    // Purge from server memory
-    for (let i = memoryChatLogs.length - 1; i >= 0; i--) {
-      if (memoryChatLogs[i].session_id === sessionId) {
-        memoryChatLogs.splice(i, 1);
-      }
-    }
-
-    if (isSupabaseConfigured && supabaseServer) {
-      try {
-        const { error } = await supabaseServer
-          .from("hermen_chat_logs")
-          .delete()
-          .eq("session_id", sessionId);
-
-        if (error) {
-          console.warn("Server Supabase delete session warning (using memory fallback):", error.message);
-        }
-      } catch (err: any) {
-        console.warn("Server Supabase delete session exception (using memory fallback):", err?.message);
-      }
-    }
-    return res.json({ success: true, deleted: 'memory' });
+    await deleteSession(sessionId);
+    return res.json({ success: true, deleted: 'session' });
   });
 
   app.delete("/api/chats/sessions/:sessionId", async (req, res) => {
     const { sessionId } = req.params;
-
-    // Purge from server memory
-    for (let i = memoryChatLogs.length - 1; i >= 0; i--) {
-      if (memoryChatLogs[i].session_id === sessionId) {
-        memoryChatLogs.splice(i, 1);
-      }
-    }
-
-    if (isSupabaseConfigured && supabaseServer) {
-      try {
-        const { error } = await supabaseServer
-          .from("hermen_chat_logs")
-          .delete()
-          .eq("session_id", sessionId);
-
-        if (error) {
-          console.warn("Server Supabase delete session warning (using memory fallback):", error.message);
-        }
-      } catch (err: any) {
-        console.warn("Server Supabase delete session exception (using memory fallback):", err?.message);
-      }
-    }
-    return res.json({ success: true, deleted: 'memory' });
+    await deleteSession(sessionId);
+    return res.json({ success: true, deleted: 'session' });
   });
 
   app.post("/api/send-email", async (req, res) => {

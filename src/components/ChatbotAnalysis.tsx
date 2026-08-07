@@ -22,6 +22,7 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // Generate a distinct sessionId when the chat is opened or initialized
   const [sessionId] = useState(() => {
@@ -229,7 +230,8 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
             <div className="text-[10px] text-gray-400 leading-relaxed text-center select-none border-b border-black/5 pb-2 mb-1">
               <p>Conversations are saved to improve service. Starting a chat implies consent. Do not enter sensitive personal info.</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5 items-center">
+              {/* File input for Album/Gallery */}
               <input
                 type="file"
                 accept="image/*"
@@ -237,15 +239,36 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
                 ref={fileInputRef}
                 onChange={handleImageUpload}
               />
+              {/* File input for Live Camera on mobile */}
+              <input
+                type="file"
+                accept="image/*"
+                capture="user"
+                className="hidden"
+                ref={cameraInputRef}
+                onChange={handleImageUpload}
+              />
+
+              <button
+                type="button"
+                onClick={() => cameraInputRef.current?.click()}
+                className="p-2 rounded hover:bg-brand-secondary text-brand-primary transition-colors flex items-center justify-center"
+                title="카메라 촬영 (Take Photo)"
+                aria-label="Take Photo"
+              >
+                <Camera size={18} />
+              </button>
+
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="p-2 rounded hover:bg-brand-secondary text-brand-primary transition-colors flex items-center justify-center"
-                title="Upload photo / Take picture"
-                aria-label="Upload photo or take picture"
+                title="사진 앨범 선택 (Photo Gallery)"
+                aria-label="Upload Photo"
               >
                 <Image size={18} />
               </button>
+
               <input
                 value={input}
                 disabled={isTyping}
