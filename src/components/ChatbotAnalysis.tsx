@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Send, Sparkles, Bot, Camera } from 'lucide-react';
+import { X, Send, Sparkles, Bot, Camera, Image } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { getChatbotStreamResponse } from '../services/geminiService';
@@ -233,16 +233,18 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
               <input
                 type="file"
                 accept="image/*"
-                capture="user"
                 className="hidden"
                 ref={fileInputRef}
                 onChange={handleImageUpload}
               />
               <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 rounded hover:bg-brand-secondary text-brand-primary"
+                className="p-2 rounded hover:bg-brand-secondary text-brand-primary transition-colors flex items-center justify-center"
+                title="Upload photo / Take picture"
+                aria-label="Upload photo or take picture"
               >
-                <Camera size={18} />
+                <Image size={18} />
               </button>
               <input
                 value={input}
