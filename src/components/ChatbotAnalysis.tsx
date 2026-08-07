@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Send, Sparkles, Bot, Camera } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '../lib/utils';
-import { getChatbotResponse } from '../services/geminiService';
+import { getChatbotStreamResponse } from '../services/geminiService';
 import { saveChatLog } from '../lib/supabase';
 import Markdown from 'react-markdown';
 
@@ -101,7 +101,10 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
     if ((!text.trim() && !image) || isTyping) return;
 
     const userMessage: Message = { id: Date.now().toString(), text, image, sender: 'user' };
-    setMessages(prev => [...prev, userMessage]);
+    const botMsgId = (Date.now() + 1).toString();
+    const initialBotMessage: Message = { id: botMsgId, text: '', sender: 'bot' };
+
+    setMessages(prev => [...prev, userMessage, initialBotMessage]);
     setInput('');
     setIsTyping(true);
 
@@ -114,18 +117,23 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
     });
 
     try {
-      const response = await getChatbotResponse([...messages, userMessage]);
-      const botResponse: Message = { id: (Date.now() + 1).toString(), text: response, sender: 'bot' };
-      setMessages(prev => [...prev, botResponse]);
+      let finalResponse = "";
+      await getChatbotStreamResponse([...messages, userMessage], (streamedText) => {
+        finalResponse = streamedText;
+        setMessages(prev => prev.map(m => m.id === botMsgId ? { ...m, text: streamedText } : m));
+      });
 
       // Save bot response to Supabase
-      saveChatLog({
-        session_id: sessionId,
-        sender: 'bot',
-        text: response
-      });
+      if (finalResponse) {
+        saveChatLog({
+          session_id: sessionId,
+          sender: 'bot',
+          text: finalResponse
+        });
+      }
     } catch (error) {
       console.error('Error generating or saving bot response:', error);
+      setMessages(prev => prev.map(m => m.id === botMsgId ? { ...m, text: 'An error occurred. Please try again.' } : m));
     } finally {
       setIsTyping(false);
     }
@@ -173,6 +181,12 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
                       "prose prose-sm max-w-none prose-p:leading-relaxed prose-a:text-brand-primary prose-a:font-semibold prose-a:underline hover:prose-a:text-brand-accent",
                       msg.sender === 'user' ? "prose-p:text-brand-primary" : "prose-p:text-brand-primary"
                     )}>
+                    {msg.sender === 'bot' && !msg.text ? (
+                      <div className="flex items-center gap-2 py-1 text-xs text-brand-primary/70 italic font-mono">
+                        <span className="w-2 h-2 rounded-full bg-brand-primary/60 animate-pulse" />
+                        <span>HERMEN AI is responding...</span>
+                      </div>
+                    ) : (
                       <Markdown
                         components={{
                           a: ({ href, children }) => {
@@ -202,24 +216,12 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
                       >
                         {msg.text}
                       </Markdown>
+                    )}
                     </div>
                   )}
                 </div>
               </div>
             ))}
-            {isTyping && (
-              <div className="flex gap-2 justify-start">
-                <div className="w-8 h-8 rounded-full bg-brand-secondary flex items-center justify-center flex-shrink-0">
-                  <Bot size={16} className="animate-pulse" />
-                </div>
-                <div className="p-3 rounded-lg text-sm bg-brand-secondary text-brand-primary italic flex items-center gap-2">
-                  <span className="animate-bounce">.</span>
-                  <span className="animate-bounce [animation-delay:0.2s]">.</span>
-                  <span className="animate-bounce [animation-delay:0.4s]">.</span>
-                  Thinking...
-                </div>
-              </div>
-            )}
             <div ref={messagesEndRef} />
           </div>
 
