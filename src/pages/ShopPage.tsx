@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
+import { ExternalLink, ShoppingBag } from 'lucide-react';
 import { PRODUCTS, Product } from '../constants';
 import { cn } from '../lib/utils';
 
@@ -11,6 +12,7 @@ const ShopProductCard = ({ product }: { product: Product }) => {
 
   const hoverCandidate = product.hoverImage || (product.images && product.images.length > 1 ? product.images[1] : undefined);
   const showHover = isHovered && hoverCandidate && !hasHoverError;
+  const amazonUrl = product.amazonUrl || `https://www.amazon.com/s?k=HERMEN+${encodeURIComponent(product.name)}`;
 
   return (
     <motion.div 
@@ -24,7 +26,7 @@ const ShopProductCard = ({ product }: { product: Product }) => {
       onClick={() => navigate(`/product/${product.id}`)}
     >
       <div className="border border-black rounded-2xl overflow-hidden bg-white flex flex-col h-full transition-all duration-300 group-hover:shadow-md">
-        <div className="aspect-[4/5] overflow-hidden bg-brand-secondary relative p-8 flex items-center justify-center">
+        <div className="aspect-[4/5] overflow-hidden bg-white relative p-8 flex items-center justify-center">
           <img 
             src={product.image} 
             alt={product.name} 
@@ -46,13 +48,24 @@ const ShopProductCard = ({ product }: { product: Product }) => {
             />
           )}
 
-          <div className="absolute bottom-6 left-6 right-6 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 z-10">
+          <div className="absolute bottom-5 left-5 right-5 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 z-10">
+            <a
+              href={amazonUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="w-full py-2.5 bg-[#FF9900] hover:bg-[#E88B00] text-black text-[10px] tracking-widest font-bold uppercase rounded-lg shadow-lg flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <ShoppingBag size={13} />
+              <span>Shop Now</span>
+              <ExternalLink size={11} />
+            </a>
             <button 
               onClick={(e) => {
                 e.stopPropagation();
                 navigate(`/product/${product.id}`);
               }}
-              className="w-full py-3.5 bg-brand-primary text-white text-[10px] tracking-widest font-bold uppercase shadow-xl"
+              className="w-full py-2.5 bg-brand-primary text-white text-[10px] tracking-widest font-bold uppercase rounded-lg shadow-md hover:bg-brand-accent transition-colors"
             >
               View Details
             </button>
@@ -61,7 +74,19 @@ const ShopProductCard = ({ product }: { product: Product }) => {
 
         {/* Text area inside border */}
         <div className="p-5 flex-1 flex flex-col justify-start border-t border-black/10">
-          <span className="text-[9px] text-brand-accent uppercase tracking-widest font-semibold mb-1">{product.category}</span>
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[9px] text-brand-accent uppercase tracking-widest font-semibold">{product.category}</span>
+            <a
+              href={amazonUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-[10px] font-semibold text-brand-primary/60 hover:text-brand-primary flex items-center gap-1"
+            >
+              <span>Shop Now</span>
+              <ExternalLink size={11} />
+            </a>
+          </div>
           <h3 className="text-sm font-semibold mb-1 text-brand-primary">{product.name}</h3>
           <p className="text-xs text-brand-primary/60 line-clamp-2 leading-relaxed">{product.description}</p>
         </div>

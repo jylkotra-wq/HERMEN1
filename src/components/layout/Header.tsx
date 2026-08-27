@@ -92,7 +92,7 @@ export const Header = () => {
     <>
       <header className={cn(
         "fixed top-0 left-0 w-full z-50 transition-all duration-500",
-        isScrolled ? "bg-white/95 backdrop-blur-md py-4 shadow-sm" : "bg-white/80 backdrop-blur-sm py-5"
+        isScrolled ? "bg-white/95 backdrop-blur-md py-4 shadow-sm" : "bg-white/40 md:bg-white/20 backdrop-blur-xs py-5"
       )}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           {/* Left: Logo */}
@@ -263,7 +263,7 @@ export const Header = () => {
                                     <img
                                       src={item.image}
                                       alt={item.title}
-                                      className="w-14 h-14 object-cover rounded-lg bg-black/5 flex-shrink-0 border border-black/5"
+                                      className="w-14 h-14 object-contain rounded-lg bg-white flex-shrink-0 border border-black/10 p-1"
                                     />
                                   )}
                                   <div className="flex-1 min-w-0">

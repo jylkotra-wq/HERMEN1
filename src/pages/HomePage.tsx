@@ -25,7 +25,7 @@ const ProductCard = ({ product, idx, onClick }: { product: Product; idx: number;
     >
       <div className="border border-black rounded-2xl overflow-hidden bg-white flex flex-col h-full transition-all duration-300 group-hover:shadow-md">
         {/* Main image area */}
-        <div className="aspect-[4/5] overflow-hidden bg-brand-secondary relative p-8 flex items-center justify-center">
+        <div className="aspect-[4/5] overflow-hidden bg-white relative p-8 flex items-center justify-center">
           <img 
             src={product.image} 
             alt={product.name} 
@@ -49,7 +49,7 @@ const ProductCard = ({ product, idx, onClick }: { product: Product; idx: number;
           )}
 
           <div className="absolute bottom-0 left-0 w-full p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500 bg-white/90 backdrop-blur-sm z-10">
-            <button className="w-full py-3 bg-brand-primary text-white text-[10px] tracking-widest font-bold uppercase">
+            <button className="w-full py-3 bg-brand-primary text-white text-[10px] tracking-widest font-bold uppercase rounded-lg shadow">
               View Details
             </button>
           </div>
@@ -103,13 +103,13 @@ export const HomePage = () => {
 
   return (
     <div className="w-full">
-      {/* Hero Section: Full responsive image display without cropping with clean white background */}
-      <section className="relative w-full overflow-hidden flex flex-col items-center justify-center bg-white pt-20 md:pt-24 pb-2">
-        <div className="w-full flex items-center justify-center">
+      {/* Hero Section: Full width edge-to-edge hero extending under navigation bar */}
+      <section className="relative w-full overflow-hidden flex flex-col items-center justify-center bg-white">
+        <div className="w-full">
           <img 
             src={heroImgSrc} 
             alt="Luxury Skincare" 
-            className="w-full h-auto max-h-[85vh] object-contain mx-auto"
+            className="w-full h-auto min-w-full object-cover block"
             onError={handleHeroImageError}
             referrerPolicy="no-referrer"
           />
