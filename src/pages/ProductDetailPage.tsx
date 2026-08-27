@@ -18,9 +18,9 @@ export const ProductDetailPage = () => {
 
   if (!product) {
     return (
-      <div className="pt-40 pb-20 px-6 text-center">
-        <h2 className="text-2xl font-light mb-8">Product not found.</h2>
-        <Link to="/shop" className="text-brand-primary underline text-sm">Back to Shop</Link>
+      <div className="pt-24 pb-12 px-4 text-center">
+        <h2 className="text-xl font-light mb-4">Product not found.</h2>
+        <Link to="/shop" className="text-brand-primary underline text-xs">Back to Shop</Link>
       </div>
     );
   }
@@ -28,17 +28,19 @@ export const ProductDetailPage = () => {
   const amazonUrl = product.amazonUrl || `https://www.amazon.com/s?k=HERMEN+${encodeURIComponent(product.name)}`;
 
   return (
-    <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto">
+    <div className="pt-20 pb-12 px-4 max-w-6xl mx-auto">
       <button 
         onClick={() => navigate(-1)}
-        className="flex items-center text-[10px] tracking-[0.2em] font-bold uppercase mb-12 hover:opacity-60 transition-opacity"
+        className="flex items-center text-xs tracking-[0.2em] font-bold uppercase mb-6 hover:opacity-60 transition-opacity"
       >
         <ArrowLeft size={16} className="mr-2" /> Back
       </button>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-16 lg:gap-24">
-        <div className="space-y-4">
-          <div className="aspect-[4/5] overflow-hidden bg-white border border-black/10 rounded-2xl shadow-xs p-10 flex items-center justify-center">
+      {/* 2. 좌우 컬럼 간격 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+        <div className="space-y-3">
+          {/* 이미지 내부 패딩 */}
+          <div className="aspect-[4/5] overflow-hidden bg-white border border-black/10 rounded-xl shadow-xs p-6 flex items-center justify-center">
             <motion.img 
               key={selectedImage}
               initial={{ scale: 1.05, opacity: 0 }}
@@ -50,12 +52,13 @@ export const ProductDetailPage = () => {
               referrerPolicy="no-referrer"
             />
           </div>
-          <div className="flex gap-3 flex-wrap">
+          {/* 썸네일 */}
+          <div className="flex gap-2 flex-wrap">
             {product.images.map((img, index) => (
               <button 
                 key={index}
                 onClick={() => setSelectedImage(img)}
-                className={`w-20 h-20 border bg-white rounded-xl ${selectedImage === img ? 'border-brand-primary ring-2 ring-brand-primary/20' : 'border-black/10 hover:border-black/30'} p-2 overflow-hidden flex items-center justify-center transition-all`}
+                className={`w-14 h-14 border bg-white rounded-lg ${selectedImage === img ? 'border-brand-primary ring-2 ring-brand-primary/20' : 'border-black/10 hover:border-black/30'} p-1.5 overflow-hidden flex items-center justify-center transition-all`}
               >
                 <img src={img} alt={`${product.name} ${index}`} className="w-full h-full object-contain" referrerPolicy="no-referrer" />
               </button>
@@ -64,55 +67,57 @@ export const ProductDetailPage = () => {
         </div>
 
         <div className="flex flex-col justify-center">
-          <div className="mb-8">
-            <span className="text-[10px] tracking-[0.3em] uppercase text-brand-accent mb-4 block">{product.category}</span>
-            <h1 className="text-4xl md:text-5xl font-light tracking-tight mb-6">{product.name}</h1>
-            <p className="text-brand-primary/70 leading-relaxed mb-6">{product.description}</p>
+          {/* 타이틀 및 본문 */}
+          <div className="mb-5">
+            <span className="text-xs tracking-[0.25em] uppercase text-brand-accent mb-2.5 block font-semibold">{product.category}</span>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-light tracking-tight mb-3 text-brand-primary leading-tight">{product.name}</h1>
+            <p className="text-sm md:text-base text-brand-primary/80 leading-relaxed mb-4">{product.description}</p>
           </div>
 
-          {/* Shop Now CTA Section */}
-          <div className="py-6 border-y border-black/10 mb-8 space-y-3">
+          {/* 버튼 영역 */}
+          <div className="py-4 border-y border-black/10 mb-5 space-y-2.5">
             <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
               <a
                 href={amazonUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 py-4 px-8 bg-[#FF9900] hover:bg-[#E88B00] text-black font-semibold text-xs tracking-[0.18em] uppercase transition-all duration-300 flex items-center justify-center gap-2.5 rounded-xl shadow-xs group"
+                className="flex-1 py-3.5 px-6 bg-[#FF9900] hover:bg-[#E88B00] text-black font-semibold text-xs md:text-sm tracking-[0.15em] uppercase transition-all duration-300 flex items-center justify-center gap-2 rounded-lg shadow-xs group"
               >
-                <ShoppingBag size={17} />
+                <ShoppingBag size={18} />
                 <span>Shop Now</span>
                 <ExternalLink size={15} className="opacity-70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </a>
               
               <Link
                 to="/inquiry"
-                className="py-4 px-6 border border-black/20 hover:border-brand-primary text-brand-primary text-xs tracking-[0.15em] font-semibold uppercase hover:bg-black/5 transition-all flex items-center justify-center rounded-xl whitespace-nowrap"
+                className="py-3.5 px-6 border border-black/20 hover:border-brand-primary text-brand-primary text-xs md:text-sm tracking-[0.12em] font-semibold uppercase hover:bg-black/5 transition-all flex items-center justify-center rounded-lg whitespace-nowrap"
               >
                 B2B Wholesale
               </Link>
             </div>
-            <p className="text-[11px] text-brand-primary/50 flex items-center gap-1.5">
-              <ShieldCheck size={14} className="text-brand-accent" />
+            <p className="text-xs text-brand-primary/60 flex items-center gap-1.5 pt-0.5">
+              <ShieldCheck size={15} className="text-brand-accent flex-shrink-0" />
               Official HERMEN Store on Amazon. Global shipping & verified authenticity.
             </p>
           </div>
 
-          <div className="space-y-6 mb-10">
+          {/* 5. 태그 및 스펙 */}
+          <div className="space-y-4 mb-5">
             <div>
-              <h4 className="text-[10px] tracking-[0.2em] font-bold uppercase mb-3 text-brand-primary/80">Skin Types</h4>
+              <h4 className="text-xs tracking-[0.2em] font-bold uppercase mb-2 text-brand-primary/90">Skin Types</h4>
               <div className="flex flex-wrap gap-2">
                 {product.skinType.map(type => (
-                  <span key={type} className="px-3.5 py-1.5 bg-white border border-black/10 text-[10px] uppercase tracking-wider rounded-full font-medium text-brand-primary/80">
+                  <span key={type} className="px-3.5 py-1.5 bg-white border border-black/10 text-xs md:text-sm uppercase tracking-wider rounded-full font-medium text-brand-primary/80">
                     {type}
                   </span>
                 ))}
               </div>
             </div>
             <div>
-              <h4 className="text-[10px] tracking-[0.2em] font-bold uppercase mb-3 text-brand-primary/80">Concerns</h4>
+              <h4 className="text-xs tracking-[0.2em] font-bold uppercase mb-2 text-brand-primary/90">Concerns</h4>
               <div className="flex flex-wrap gap-2">
                 {product.concern.map(c => (
-                  <span key={c} className="px-3.5 py-1.5 bg-white border border-black/10 text-[10px] uppercase tracking-wider rounded-full font-medium text-brand-primary/80">
+                  <span key={c} className="px-3.5 py-1.5 bg-white border border-black/10 text-xs md:text-sm uppercase tracking-wider rounded-full font-medium text-brand-primary/80">
                     {c}
                   </span>
                 ))}
@@ -120,38 +125,46 @@ export const ProductDetailPage = () => {
             </div>
           </div>
 
-          <div className="mt-8 pt-8 border-t border-black/5 space-y-8">
-            <div className="space-y-3">
-              <h4 className="text-[10px] tracking-[0.2em] font-bold uppercase">Product Information</h4>
-              <p className="text-xs text-brand-primary/60 leading-relaxed">
-                This product has completed skin irritation tests and is designed to be suitable for all skin types.
-              </p>
-            </div>
-            <div className="space-y-3">
-              <h4 className="text-[10px] tracking-[0.2em] font-bold uppercase">Ingredients</h4>
-              <p className="text-xs text-brand-primary/60 leading-relaxed">
-                Purified water, Glycerin, Butylene glycol, Niacinamide, 1,2-Hexanediol, Panthenol, Sodium hyaluronate, Centella asiatica extract, Allantoin, Ethylhexylglycerin, Disodium EDTA.
-              </p>
-            </div>
-            <div className="space-y-3">
-              <h4 className="text-[10px] tracking-[0.2em] font-bold uppercase">How to Use</h4>
-              <p className="text-xs text-brand-primary/60 leading-relaxed">
-                Apply an appropriate amount gently over the entire face and pat lightly to absorb. Use in the morning and evening skincare steps.
-              </p>
-            </div>
-            <div className="space-y-3">
-              <h4 className="text-[10px] tracking-[0.2em] font-bold uppercase">Capacity and Packing Specifications</h4>
-              <p className="text-xs text-brand-primary/60 leading-relaxed">
-                Capacity: 50ml / 1.69 fl.oz. | Packaging: Recyclable glass container and eco-friendly paper packaging used.
-              </p>
-            </div>
+          {/* 6. 상세 텍스트 영역 (최소 12px / 본문 14px로 가독성 강화) */}
+          <div className="mt-2 pt-3 border-t border-black/5 space-y-3.5">
+            {product.detailsInfo && (
+              <div className="space-y-1">
+                <h4 className="text-xs tracking-[0.2em] font-bold uppercase text-brand-primary/90">Product Information</h4>
+                <p className="text-sm text-brand-primary/75 leading-relaxed">{product.detailsInfo}</p>
+              </div>
+            )}
+            {product.ingredients && (
+              <div className="space-y-1">
+                <h4 className="text-xs tracking-[0.2em] font-bold uppercase text-brand-primary/90">Ingredients</h4>
+                <p className="text-sm text-brand-primary/75 leading-relaxed">{product.ingredients}</p>
+              </div>
+            )}
+            {product.howToUse && (
+              <div className="space-y-1">
+                <h4 className="text-xs tracking-[0.2em] font-bold uppercase text-brand-primary/90">How to Use</h4>
+                <p className="text-sm text-brand-primary/75 leading-relaxed">{product.howToUse}</p>
+              </div>
+            )}
+            {product.cautions && (
+              <div className="space-y-1">
+                <h4 className="text-xs tracking-[0.2em] font-bold uppercase text-brand-primary/90">Cautions</h4>
+                <p className="text-sm text-brand-primary/75 leading-relaxed">{product.cautions}</p>
+              </div>
+            )}
+            {product.capacity && (
+              <div className="space-y-1">
+                <h4 className="text-xs tracking-[0.2em] font-bold uppercase text-brand-primary/90">Capacity</h4>
+                <p className="text-sm text-brand-primary/75 leading-relaxed">{product.capacity}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="mt-24">
-        <h3 className="text-[10px] tracking-[0.2em] font-bold uppercase mb-8">Product Details</h3>
-        <div className="space-y-8">
+      {/* 7. 하단 상세 이미지 */}
+      <div className="mt-6">
+        <h3 className="text-xs md:text-sm tracking-[0.2em] font-bold uppercase mb-3 text-brand-primary/90">Product Details</h3>
+        <div className="space-y-4">
           {product.images.map((img, index) => {
             const isSmallImage = img.includes('calming-serum.png') || 
                                  img.includes('balancing-serum.png') || 
