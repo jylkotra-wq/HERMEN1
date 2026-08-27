@@ -1,4 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+
 export const Footer = () => (
   <footer className="bg-brand-secondary py-20 px-6 border-t border-black/5">
     <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
@@ -11,17 +13,24 @@ export const Footer = () => (
       <div>
         <h3 className="text-xs font-bold tracking-widest mb-6 uppercase">Contact</h3>
         <ul className="text-sm text-brand-primary/60 space-y-3">
-          <li>hermen@hermen.co.kr </li>
+          <li><a href="mailto:hermen@hermen.co.kr" className="hover:text-brand-primary transition-colors">hermen@hermen.co.kr</a></li>
         </ul>
       </div>
       <div>
         <h3 className="text-xs font-bold tracking-widest mb-6 uppercase">Information</h3>
         <ul className="text-sm text-brand-primary/60 space-y-3">
-          <li>Terms of Service</li>
-          <li>Privacy Policy</li>
-          <li>Shipping Guide</li>
-          <li><a href="/brand" className="hover:text-brand-primary transition-colors">About Us</a></li>
-          <li><a href="/admin/chats" className="hover:text-brand-primary/40 transition-colors text-xs">Admin Workspace</a></li>
+          <li>
+            <Link to="/terms" className="hover:text-brand-primary transition-colors">Terms of Service</Link>
+          </li>
+          <li>
+            <Link to="/privacy" className="hover:text-brand-primary transition-colors">Privacy Policy</Link>
+          </li>
+          <li>
+            <Link to="/brand" className="hover:text-brand-primary transition-colors">About Us</Link>
+          </li>
+          <li>
+            <Link to="/admin/chats" className="hover:text-brand-primary/40 transition-colors text-xs">Admin Workspace</Link>
+          </li>
         </ul>
       </div>
     </div>
@@ -30,7 +39,7 @@ export const Footer = () => (
       <div className="flex space-x-6 mt-4 md:mt-0">
         <a href="https://www.instagram.com/hermen_global?igsh=bXVucTFyOTE2eWph" target="_blank" rel="noopener noreferrer" className="hover:text-brand-primary transition-colors">Instagram</a>
         <span>Youtube</span>
-        <span>Kakao</span>
+        <span>TikTok</span>
       </div>
     </div>
   </footer>

@@ -1,16 +1,36 @@
 import React, { useState } from 'react';
 import { cn } from '../lib/utils';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { useChat } from '../contexts/ChatContext';
+import { ShieldCheck, Award, FileCheck, CheckCircle2 } from 'lucide-react';
 
 const CertificationItem = ({ item, logo }: { item: { title: string; desc: string }; logo: string }) => {
+    const [imgError, setImgError] = useState(false);
     return (
-        <div className="border border-gray-100 p-6 rounded hover:shadow-lg transition-shadow">
-            <div className="h-40 bg-gray-100 mb-4 rounded flex items-center justify-center font-bold text-gray-500 overflow-hidden">
-                <img src={logo} alt={item.title} className="w-full h-full object-contain" />
+        <div className="border border-black/10 p-6 rounded-xl hover:shadow-lg bg-white transition-all flex flex-col justify-between">
+            <div className="h-44 bg-brand-secondary/40 mb-5 rounded-lg flex items-center justify-center p-4 overflow-hidden border border-black/5">
+                {!imgError ? (
+                    <img 
+                      src={logo} 
+                      alt={item.title} 
+                      onError={() => setImgError(true)} 
+                      className="max-h-full max-w-full object-contain" 
+                      referrerPolicy="no-referrer"
+                    />
+                ) : (
+                    <div className="flex flex-col items-center gap-2 text-brand-primary/60">
+                        <FileCheck size={40} className="text-brand-accent" />
+                        <span className="text-xs font-semibold tracking-wider uppercase">{item.title}</span>
+                    </div>
+                )}
             </div>
-            <h4 className="font-bold mb-2">{item.title}</h4>
-            <p className="text-sm text-gray-600">{item.desc}</p>
+            <div>
+                <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle2 size={16} className="text-brand-accent flex-shrink-0" />
+                    <h4 className="font-semibold text-brand-primary text-base">{item.title}</h4>
+                </div>
+                <p className="text-xs text-brand-primary/70 leading-relaxed">{item.desc}</p>
+            </div>
         </div>
     );
 };
@@ -23,10 +43,10 @@ const CertificationSection = () => {
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-4xl">
                 {[
-                    { title: 'MoCRA (USA)', desc: 'US Cosmetic Regulation Modernization Act registration complete.' },
-                    { title: 'CPNP (EU)', desc: 'European Cosmetic Product Notification Portal registration complete.' }
+                    { title: 'MoCRA (USA)', desc: 'US Cosmetic Regulation Modernization Act facility and product listing complete.' },
+                    { title: 'CPNP (EU)', desc: 'European Cosmetic Product Notification Portal safety dossier and registration complete.' }
                 ].map((item, i) => (
                     <CertificationItem key={i} item={item} logo={logos[i]} />
                 ))}
@@ -35,34 +55,93 @@ const CertificationSection = () => {
     );
 };
 
-// ... ClinicalSection and IPSection remain the same for now
-// (I will keep them as is and just edit the import/TrustSafetyPage component)
-
 const ClinicalSection = () => (
   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
-    <h3 className="text-xl font-medium">Formulated for Sensitive Skin</h3>
-    <div className="bg-gray-50 p-8 rounded-lg">
-      <p className="text-gray-700 mb-6">All products (Preserve Series) have passed skin irritation tests.</p>
-      <div className="h-64 bg-white rounded flex items-center justify-center text-gray-400">
-        [Before/After Graphs & Research Lab Logos]
-      </div>
+    <div>
+      <span className="text-[10px] tracking-[0.25em] uppercase text-brand-accent font-semibold block mb-2">Formulated for Sensitive Skin</span>
+      <h3 className="text-2xl font-light tracking-tight text-brand-primary">All products (Preserve Series) have passed skin irritation tests.</h3>
     </div>
   </motion.div>
 );
 
-const IPSection = () => (
-  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
-    <h3 className="text-xl font-medium">Brand Protection & Exclusivity</h3>
-    <div className="grid grid-cols-2 gap-8">
-      <div className="bg-gray-100 h-64 rounded flex items-center justify-center overflow-hidden">
-        <img src="/logos/us_trademark.png" alt="US Trademark" className="w-full h-full object-contain" />
+const IPSection = () => {
+  const [krImgError, setKrImgError] = useState(false);
+  const [usImgError, setUsImgError] = useState(false);
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+      <div>
+        <span className="text-[10px] tracking-[0.25em] uppercase text-brand-accent font-semibold block mb-2">Intellectual Property</span>
+        <h3 className="text-2xl font-light tracking-tight text-brand-primary">Brand Protection & Global Exclusivity</h3>
       </div>
-      <div className="bg-gray-100 h-64 rounded flex items-center justify-center overflow-hidden">
-        <img src="/logos/kr_trademark.png" alt="KR Trademark" className="w-full h-full object-contain" />
+      <p className="text-sm text-brand-primary/70 max-w-3xl leading-relaxed">
+        HERMEN secures proprietary international trademark registrations and formulations to guarantee global brand integrity, authentic distribution channels, and buyer exclusivity.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-4xl">
+        {/* KR Trademark */}
+        <div className="border border-black/10 rounded-xl p-6 bg-white shadow-2xs flex flex-col justify-between">
+          <div className="bg-brand-secondary/30 h-56 rounded-lg mb-5 flex items-center justify-center p-4 overflow-hidden border border-black/5">
+            {!krImgError ? (
+              <img 
+                src="/logos/kr_trademark.jpg" 
+                alt="Korea Intellectual Property Office Trademark Registration" 
+                onError={() => setKrImgError(true)} 
+                className="max-h-full max-w-full object-contain rounded" 
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="flex flex-col items-center gap-3 text-brand-primary/60">
+                <Award size={48} className="text-brand-accent" />
+                <span className="text-xs font-semibold uppercase tracking-wider">KIPO Registered Trademark</span>
+              </div>
+            )}
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <ShieldCheck size={16} className="text-brand-accent flex-shrink-0" />
+              <h4 className="font-semibold text-brand-primary text-base">KIPO Trademark Registration (KR)</h4>
+            </div>
+            <p className="text-xs text-brand-primary/70 leading-relaxed">
+              Officially registered with the Korean Intellectual Property Office under Class 03 (Cosmetics & Skincare).
+            </p>
+          </div>
+        </div>
+
+        {/* US / Global Trademark */}
+        <div className="border border-black/10 rounded-xl p-6 bg-white shadow-2xs flex flex-col justify-between">
+          <div className="bg-brand-secondary/30 h-56 rounded-lg mb-5 flex items-center justify-center p-4 overflow-hidden border border-black/5">
+            {!usImgError ? (
+              <img 
+                src="/logos/us_trademark.png" 
+                alt="USPTO Trademark Application & Protection" 
+                onError={() => setUsImgError(true)} 
+                className="max-h-full max-w-full object-contain rounded" 
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="flex flex-col items-center gap-3 text-brand-primary/60 text-center px-4">
+                <Award size={48} className="text-brand-accent" />
+                <div>
+                  <span className="text-xs font-semibold uppercase tracking-wider block">USPTO Global Filing</span>
+                  <span className="text-[10px] text-brand-primary/50">United States Patent and Trademark Office</span>
+                </div>
+              </div>
+            )}
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <ShieldCheck size={16} className="text-brand-accent flex-shrink-0" />
+              <h4 className="font-semibold text-brand-primary text-base">USPTO </h4>
+            </div>
+            <p className="text-xs text-brand-primary/70 leading-relaxed">
+              Active trademark protection
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 export const TrustSafetyPage = () => {
   const [activeTab, setActiveTab] = useState<'Certification' | 'Clinical' | 'IP'>('Certification');

@@ -121,5 +121,23 @@ export const SITE_SEARCH_INDEX: SearchItem[] = [
     description: 'Direct email contact with HERMEN head office: hermen@hermen.co.kr',
     keywords: ['이메일', 'email', '메일', 'contact', '연락처', '주소', 'hermen@hermen.co.kr'],
     path: '/inquiry'
+  },
+  {
+    id: 'legal-terms',
+    title: 'Terms of Service',
+    category: 'Contact & Support',
+    description: 'Official HERMEN terms and conditions regarding website usage, product orders, and intellectual property.',
+    keywords: ['terms', 'terms of service', '이용약관', '약관', '법적고지', 'legal'],
+    path: '/terms',
+    badge: 'Legal'
+  },
+  {
+    id: 'legal-privacy',
+    title: 'Privacy Policy',
+    category: 'Contact & Support',
+    description: 'HERMEN personal data protection and privacy policy explaining collection, usage, and user rights.',
+    keywords: ['privacy', 'privacy policy', '개인정보', '개인정보처리방침', '보안', 'security'],
+    path: '/privacy',
+    badge: 'Policy'
   }
 ];

@@ -1,12 +1,95 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ArrowRight, Sparkles } from 'lucide-react';
-import { PRODUCTS } from '../constants';
+import { ArrowRight, Sparkles, Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { PRODUCTS, Product } from '../constants';
+
+const ProductCard = ({ product, idx, onClick }: { product: Product; idx: number; onClick: () => void }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [hasHoverError, setHasHoverError] = useState(false);
+
+  // Secondary/hover image candidates if user uploads new files
+  const hoverCandidate = product.hoverImage || (product.images && product.images.length > 1 ? product.images[1] : undefined);
+  const showHover = isHovered && hoverCandidate && !hasHoverError;
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: idx * 0.1 }}
+      className="group cursor-pointer flex flex-col h-full"
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="border border-black rounded-2xl overflow-hidden bg-white flex flex-col h-full transition-all duration-300 group-hover:shadow-md">
+        {/* Main image area */}
+        <div className="aspect-[4/5] overflow-hidden bg-brand-secondary relative p-8 flex items-center justify-center">
+          <img 
+            src={product.image} 
+            alt={product.name} 
+            className={`max-w-full max-h-full object-contain transition-all duration-500 ${
+              showHover ? 'opacity-0 scale-95' : 'opacity-100 group-hover:scale-105'
+            }`}
+            referrerPolicy="no-referrer"
+          />
+
+          {/* Hover image (fades in on hover) */}
+          {hoverCandidate && (
+            <img 
+              src={hoverCandidate} 
+              alt={`${product.name} alternate`} 
+              onError={() => setHasHoverError(true)}
+              className={`absolute inset-0 m-auto p-8 max-w-full max-h-full object-contain transition-all duration-500 ${
+                showHover ? 'opacity-100 scale-105' : 'opacity-0 scale-95 pointer-events-none'
+              }`}
+              referrerPolicy="no-referrer"
+            />
+          )}
+
+          <div className="absolute bottom-0 left-0 w-full p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500 bg-white/90 backdrop-blur-sm z-10">
+            <button className="w-full py-3 bg-brand-primary text-white text-[10px] tracking-widest font-bold uppercase">
+              View Details
+            </button>
+          </div>
+        </div>
+
+        {/* Text description area inside the border */}
+        <div className="p-5 flex-1 flex flex-col justify-start border-t border-black/10">
+          <h3 className="text-sm font-semibold mb-1.5 text-brand-primary">{product.name}</h3>
+          <p className="text-xs text-brand-primary/60 line-clamp-2 leading-relaxed">{product.description}</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 export const HomePage = () => {
   const navigate = useNavigate();
   const [heroImgSrc, setHeroImgSrc] = useState('/home-hero.jpg');
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const togglePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!videoRef.current) return;
+    videoRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
 
   const handleHeroImageError = () => {
     if (heroImgSrc === '/home-hero.jpg') {
@@ -20,117 +103,88 @@ export const HomePage = () => {
 
   return (
     <div className="w-full">
-      <section className="relative h-screen w-full overflow-hidden flex items-center justify-center">
-        <motion.div 
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 10, ease: "linear" }}
-          className="absolute inset-0 z-0"
-        >
+      {/* Hero Section: Full responsive image display without cropping with clean white background */}
+      <section className="relative w-full overflow-hidden flex flex-col items-center justify-center bg-white pt-20 md:pt-24 pb-2">
+        <div className="w-full flex items-center justify-center">
           <img 
             src={heroImgSrc} 
             alt="Luxury Skincare" 
-            className="w-full h-full object-cover"
+            className="w-full h-auto max-h-[85vh] object-contain mx-auto"
             onError={handleHeroImageError}
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-black/20" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/40" />
-        </motion.div>
-        
-        <div className="relative z-10 text-center px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, ease: "easeOut" }}
-          >
-            <span className="block text-[10px] tracking-[0.6em] uppercase mb-8 text-white/80 font-light">
-              The Essence of Timeless Beauty
-            </span>
-            <div className="mb-12 flex justify-center">
-              <img 
-                src="/logo.png" 
-                alt="HERMEN" 
-                className="h-16 md:h-28 w-auto object-contain"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-            <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-              <Link 
-                to="/shop"
-                className="px-12 py-5 bg-white text-brand-primary text-[10px] tracking-[0.3em] font-bold uppercase hover:bg-brand-primary hover:text-white transition-all duration-700 min-w-[240px] text-center"
-              >
-                Explore Collection
-              </Link>
-              <Link 
-                to="/brand"
-                className="px-12 py-5 border border-white/30 text-white text-[10px] tracking-[0.3em] font-bold uppercase hover:bg-white hover:text-brand-primary transition-all duration-700 min-w-[240px] backdrop-blur-sm text-center"
-              >
-                Our Story
-              </Link>
-              <Link 
-                to="/inquiry"
-                className="px-12 py-5 bg-white text-brand-primary text-[10px] tracking-[0.3em] font-bold uppercase hover:bg-brand-primary hover:text-white transition-all duration-700 min-w-[240px] text-center"
-              >
-                INQUIRY
-              </Link>
-            </div>
-          </motion.div>
         </div>
-
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2, duration: 1 }}
-          className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center"
-        >
-          <span className="text-[9px] tracking-[0.3em] uppercase text-white/40 mb-4">Scroll</span>
-          <div className="w-[1px] h-12 bg-gradient-to-b from-white/60 to-transparent" />
-        </motion.div>
       </section>
 
-      <section className="py-32 px-6 max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-20">
+      <section className="pt-8 md:pt-12 pb-20 md:pb-28 px-6 max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-8 md:mb-12">
           <div>
-            <span className="text-[10px] tracking-[0.3em] uppercase text-brand-accent mb-4 block">Best Sellers</span>
-            <h2 className="text-4xl font-light tracking-tight">HERMEN's Most Loved Solutions</h2>
+            <span className="text-[10px] tracking-[0.3em] uppercase text-brand-accent mb-3 block">Best Sellers</span>
+            <h2 className="text-3xl md:text-4xl font-light tracking-tight">HERMEN's Most Loved Solutions</h2>
           </div>
           <Link 
             to="/shop"
-            className="group flex items-center text-xs tracking-widest font-bold uppercase mt-8 md:mt-0"
+            className="group flex items-center text-xs tracking-widest font-bold uppercase mt-6 md:mt-0"
           >
             View All <ArrowRight className="ml-2 group-hover:translate-x-2 transition-transform" size={16} />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {PRODUCTS.slice(0, 3).map((product, idx) => (
-            <motion.div 
+            <ProductCard
               key={product.id}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.1 }}
-              className="group cursor-pointer"
+              product={product}
+              idx={idx}
               onClick={() => navigate(`/product/${product.id}`)}
-            >
-              <div className="aspect-[4/5] overflow-hidden bg-brand-secondary mb-6 relative p-8 flex items-center justify-center">
-                <img 
-                  src={product.image} 
-                  alt={product.name} 
-                  className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-700"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute bottom-0 left-0 w-full p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500 bg-white/90 backdrop-blur-sm">
-                  <button className="w-full py-3 bg-brand-primary text-white text-[10px] tracking-widest font-bold uppercase">
-                    View Details
-                  </button>
-                </div>
-              </div>
-              <h3 className="text-sm font-medium mb-2">{product.name}</h3>
-              <p className="text-xs text-brand-primary/50 mb-4 line-clamp-1">{product.description}</p>
-            </motion.div>
+            />
           ))}
+
+          {/* 4th Column: Brand Video Player Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-col h-full"
+          >
+            <div className="rounded-2xl overflow-hidden relative flex flex-col h-full w-full aspect-[4/5] sm:aspect-auto sm:h-full">
+              <video 
+                ref={videoRef}
+                autoPlay 
+                loop 
+                muted={isMuted}
+                playsInline
+                className="w-full h-full object-cover block"
+                poster="/home-hero.jpg"
+              >
+                <source src="/brand-video.mp4" type="video/mp4" />
+                <source src="/video.mp4" type="video/mp4" />
+                <source src="https://assets.mixkit.co/videos/preview/mixkit-applying-face-cream-on-the-cheek-41138-large.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+
+              {/* Video control buttons */}
+              <div className="absolute bottom-4 right-4 flex items-center gap-2 z-20">
+                <button 
+                  onClick={toggleMute}
+                  type="button"
+                  aria-label={isMuted ? "Unmute video" : "Mute video"}
+                  className="w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white backdrop-blur-md flex items-center justify-center transition-colors"
+                >
+                  {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                </button>
+                <button 
+                  onClick={togglePlay}
+                  type="button"
+                  aria-label={isPlaying ? "Pause video" : "Play video"}
+                  className="w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white backdrop-blur-md flex items-center justify-center transition-colors"
+                >
+                  {isPlaying ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}
+                </button>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -152,3 +206,4 @@ export const HomePage = () => {
     </div>
   );
 };
+

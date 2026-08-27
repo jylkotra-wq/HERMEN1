@@ -1,12 +1,77 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { PRODUCTS } from '../constants';
+import { PRODUCTS, Product } from '../constants';
 import { cn } from '../lib/utils';
+
+const ShopProductCard = ({ product }: { product: Product }) => {
+  const navigate = useNavigate();
+  const [isHovered, setIsHovered] = useState(false);
+  const [hasHoverError, setHasHoverError] = useState(false);
+
+  const hoverCandidate = product.hoverImage || (product.images && product.images.length > 1 ? product.images[1] : undefined);
+  const showHover = isHovered && hoverCandidate && !hasHoverError;
+
+  return (
+    <motion.div 
+      layout
+      key={product.id}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="group cursor-pointer flex flex-col h-full"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={() => navigate(`/product/${product.id}`)}
+    >
+      <div className="border border-black rounded-2xl overflow-hidden bg-white flex flex-col h-full transition-all duration-300 group-hover:shadow-md">
+        <div className="aspect-[4/5] overflow-hidden bg-brand-secondary relative p-8 flex items-center justify-center">
+          <img 
+            src={product.image} 
+            alt={product.name} 
+            className={`max-w-full max-h-full object-contain transition-all duration-500 ${
+              showHover ? 'opacity-0 scale-95' : 'opacity-100 group-hover:scale-105'
+            }`}
+            referrerPolicy="no-referrer"
+          />
+
+          {hoverCandidate && (
+            <img 
+              src={hoverCandidate} 
+              alt={`${product.name} alternate`} 
+              onError={() => setHasHoverError(true)}
+              className={`absolute inset-0 m-auto p-8 max-w-full max-h-full object-contain transition-all duration-500 ${
+                showHover ? 'opacity-100 scale-105' : 'opacity-0 scale-95 pointer-events-none'
+              }`}
+              referrerPolicy="no-referrer"
+            />
+          )}
+
+          <div className="absolute bottom-6 left-6 right-6 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 z-10">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/product/${product.id}`);
+              }}
+              className="w-full py-3.5 bg-brand-primary text-white text-[10px] tracking-widest font-bold uppercase shadow-xl"
+            >
+              View Details
+            </button>
+          </div>
+        </div>
+
+        {/* Text area inside border */}
+        <div className="p-5 flex-1 flex flex-col justify-start border-t border-black/10">
+          <span className="text-[9px] text-brand-accent uppercase tracking-widest font-semibold mb-1">{product.category}</span>
+          <h3 className="text-sm font-semibold mb-1 text-brand-primary">{product.name}</h3>
+          <p className="text-xs text-brand-primary/60 line-clamp-2 leading-relaxed">{product.description}</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 export const ShopPage = () => {
   const [filter, setFilter] = useState<string>('all');
-  const navigate = useNavigate();
 
   const filteredProducts = filter === 'all' 
     ? PRODUCTS 
@@ -44,44 +109,10 @@ export const ShopPage = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
         {filteredProducts.map((product) => (
-          <motion.div 
-            layout
-            key={product.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="group"
-          >
-            <div 
-              className="aspect-[4/5] overflow-hidden bg-brand-secondary mb-6 relative cursor-pointer p-8 flex items-center justify-center"
-              onClick={() => navigate(`/product/${product.id}`)}
-            >
-              <img 
-                src={product.image} 
-                alt={product.name} 
-                className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-500"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute bottom-6 left-6 right-6 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/product/${product.id}`);
-                  }}
-                  className="w-full py-4 bg-brand-primary text-white text-[10px] tracking-widest font-bold uppercase shadow-xl"
-                >
-                  View Details
-                </button>
-              </div>
-            </div>
-            <div className="flex justify-between items-start">
-              <div className="cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
-                <h3 className="text-sm font-medium mb-1">{product.name}</h3>
-                <p className="text-[10px] text-brand-primary/40 uppercase tracking-widest mb-3">{product.category}</p>
-              </div>
-            </div>
-          </motion.div>
+          <ShopProductCard key={product.id} product={product} />
         ))}
       </div>
     </div>
   );
 };
+
