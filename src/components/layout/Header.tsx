@@ -50,16 +50,60 @@ export const Header = () => {
   ];
 
   const trimmedQuery = searchQuery.trim().toLowerCase();
+  const queryTokens = trimmedQuery.split(/\s+/).filter(Boolean);
 
-  // Search filter across title, description, keywords, category
+  // Search filter and relevance scoring across title, description, keywords, category, and badge
   const searchResults: SearchItem[] = trimmedQuery
-    ? SITE_SEARCH_INDEX.filter((item) => {
-        const titleMatch = item.title.toLowerCase().includes(trimmedQuery);
-        const descMatch = item.description.toLowerCase().includes(trimmedQuery);
-        const catMatch = item.category.toLowerCase().includes(trimmedQuery);
-        const kwMatch = item.keywords.some((kw) => kw.includes(trimmedQuery));
-        return titleMatch || descMatch || catMatch || kwMatch;
+    ? SITE_SEARCH_INDEX.map((item) => {
+        const titleLower = item.title.toLowerCase();
+        const descLower = item.description.toLowerCase();
+        const badgeLower = (item.badge || '').toLowerCase();
+        const catLower = item.category.toLowerCase();
+        const keywordsLower = item.keywords.map((k) => k.toLowerCase());
+        const fullContent = [titleLower, descLower, catLower, badgeLower, ...keywordsLower].join(' ');
+
+        let score = 0;
+
+        // 1. Direct title matching
+        if (titleLower === trimmedQuery) {
+          score += 100;
+        } else if (titleLower.startsWith(trimmedQuery)) {
+          score += 80;
+        } else if (titleLower.includes(trimmedQuery)) {
+          score += 60;
+        }
+
+        // 2. Direct badge/category matching
+        if (badgeLower.includes(trimmedQuery)) score += 40;
+        if (catLower.includes(trimmedQuery)) score += 30;
+
+        // 3. Keyword matching
+        keywordsLower.forEach((kw) => {
+          if (kw === trimmedQuery) {
+            score += 50;
+          } else if (kw.startsWith(trimmedQuery)) {
+            score += 35;
+          } else if (kw.includes(trimmedQuery)) {
+            score += 25;
+          }
+        });
+
+        // 4. Description matching
+        if (descLower.includes(trimmedQuery)) score += 15;
+
+        // 5. Multi-token partial matches
+        if (queryTokens.length > 1) {
+          const allTokensMatch = queryTokens.every((token) => fullContent.includes(token));
+          if (allTokensMatch) {
+            score += 45;
+          }
+        }
+
+        return { item, score };
       })
+      .filter((res) => res.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map((res) => res.item)
     : [];
 
   // Group search results by category
@@ -75,7 +119,7 @@ export const Header = () => {
     navigate(path);
   };
 
-  const popularKeywords = ['CPNP', 'MoCRA', 'Serum', 'Cream', 'Barrier', 'B2B Wholesale', 'Skin Analysis', 'Dossier', 'R&D'];
+  const popularKeywords = ['Trademark', 'KIPO', 'CPNP', 'MoCRA', 'Serum', 'Cream', 'Barrier', 'B2B Wholesale', 'Skin Analysis', 'Dossier'];
 
   const getCategoryIcon = (category: SearchItem['category']) => {
     switch (category) {

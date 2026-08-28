@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
 import { useChat } from '../contexts/ChatContext';
@@ -144,8 +145,24 @@ const IPSection = () => {
 };
 
 export const TrustSafetyPage = () => {
-  const [activeTab, setActiveTab] = useState<'Certification' | 'Clinical' | 'IP'>('Certification');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = (searchParams.get('tab') as 'Certification' | 'Clinical' | 'IP') || 'Certification';
+  const [activeTab, setActiveTab] = useState<'Certification' | 'Clinical' | 'IP'>(
+    ['Certification', 'Clinical', 'IP'].includes(initialTab) ? initialTab : 'Certification'
+  );
   const { openChatWith } = useChat();
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['Certification', 'Clinical', 'IP'].includes(tabParam)) {
+      setActiveTab(tabParam as 'Certification' | 'Clinical' | 'IP');
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (tabName: 'Certification' | 'Clinical' | 'IP') => {
+    setActiveTab(tabName);
+    setSearchParams({ tab: tabName });
+  };
 
   const handleDownloadDossier = () => {
     window.open('/dossier.pdf', '_blank');
@@ -167,7 +184,7 @@ export const TrustSafetyPage = () => {
         ].map((tab) => (
           <button
             key={tab.name}
-            onClick={() => setActiveTab(tab.name as any)}
+            onClick={() => handleTabChange(tab.name as any)}
             className={cn(
               "pb-4 text-xs font-bold tracking-widest uppercase transition-colors mr-8 whitespace-nowrap",
               activeTab === tab.name ? "text-brand-primary border-b-2 border-brand-primary" : "text-gray-400 hover:text-black"
