@@ -161,26 +161,28 @@ export const ProductDetailPage = () => {
         </div>
       </div>
 
-      {/* 7. 하단 상세 이미지 */}
-      <div className="mt-6">
-        <h3 className="text-xs md:text-sm tracking-[0.2em] font-bold uppercase mb-3 text-brand-primary/90">Product Details</h3>
-        <div className="space-y-4">
-          {product.images.map((img, index) => {
-            const isSmallImage = img.includes('calming-serum.png') || 
-                                 img.includes('balancing-serum.png') || 
-                                 img.includes('barrier-cream.png');
-            return (
-              <img 
-                key={index} 
-                src={img} 
-                alt={`${product.name} detail ${index}`} 
-                className={isSmallImage ? "w-1/2 mx-auto h-auto object-contain" : "w-full h-auto object-contain"}
-                referrerPolicy="no-referrer"
-              />
-            );
-          })}
+      {/* 7. 하단 상세 이미지 (detailImages 전용 목록 사용) */}
+      {((product.detailImages && product.detailImages.length > 0) || (product.images && product.images.length > 0)) && (
+        <div className="mt-6">
+          <h3 className="text-xs md:text-sm tracking-[0.2em] font-bold uppercase mb-3 text-brand-primary/90">Product Details</h3>
+          <div className="space-y-4">
+            {(product.detailImages && product.detailImages.length > 0 ? product.detailImages : product.images).map((img, index) => {
+              const isSmallImage = img.endsWith('calming-serum.png') || 
+                                   img.endsWith('balancing-serum.png') || 
+                                   img.endsWith('barrier-cream.png');
+              return (
+                <img 
+                  key={index} 
+                  src={img} 
+                  alt={`${product.name} detail ${index}`} 
+                  className={isSmallImage ? "w-1/2 mx-auto h-auto object-contain" : "w-full h-auto object-contain"}
+                  referrerPolicy="no-referrer"
+                />
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
