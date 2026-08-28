@@ -165,17 +165,19 @@ export const ProductDetailPage = () => {
       {((product.detailImages && product.detailImages.length > 0) || (product.images && product.images.length > 0)) && (
         <div className="mt-6">
           <h3 className="text-xs md:text-sm tracking-[0.2em] font-bold uppercase mb-3 text-brand-primary/90">Product Details</h3>
-          <div className="space-y-4">
+          {/* space-y-4 제거 */}
+          <div>
             {(product.detailImages && product.detailImages.length > 0 ? product.detailImages : product.images).map((img, index) => {
               const isSmallImage = img.endsWith('calming-serum.png') || 
-                                   img.endsWith('balancing-serum.png') || 
-                                   img.endsWith('barrier-cream.png');
+                                  img.endsWith('balancing-serum.png') || 
+                                  img.endsWith('barrier-cream.png');
               return (
                 <img 
                   key={index} 
                   src={img} 
                   alt={`${product.name} detail ${index}`} 
-                  className={isSmallImage ? "w-1/2 mx-auto h-auto object-contain" : "w-full h-auto object-contain"}
+                  /* block 추가 */
+                  className={isSmallImage ? "block w-1/2 mx-auto h-auto object-contain" : "block w-full h-auto object-contain"}
                   referrerPolicy="no-referrer"
                 />
               );
@@ -183,6 +185,6 @@ export const ProductDetailPage = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
   );
 };
