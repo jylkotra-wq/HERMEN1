@@ -119,10 +119,15 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
 
     try {
       let finalResponse = "";
-      await getChatbotStreamResponse([...messages, userMessage], (streamedText) => {
+      const result = await getChatbotStreamResponse([...messages, userMessage], (streamedText) => {
         finalResponse = streamedText;
         setMessages(prev => prev.map(m => m.id === botMsgId ? { ...m, text: streamedText } : m));
       });
+
+      if (!finalResponse && result) {
+        finalResponse = result;
+        setMessages(prev => prev.map(m => m.id === botMsgId ? { ...m, text: result } : m));
+      }
 
       // Save bot response to Supabase
       if (finalResponse) {
@@ -134,7 +139,7 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
       }
     } catch (error) {
       console.error('Error generating or saving bot response:', error);
-      setMessages(prev => prev.map(m => m.id === botMsgId ? { ...m, text: 'An error occurred. Please try again.' } : m));
+      setMessages(prev => prev.map(m => m.id === botMsgId ? { ...m, text: '죄송합니다. 응답 생성 중 오류가 발생했습니다. 다시 시도해 주세요.' } : m));
     } finally {
       setIsTyping(false);
     }
@@ -178,15 +183,21 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
                 )}>
                   {msg.image && <img src={msg.image} alt="User upload" className="rounded mb-2 max-w-full" />}
                   {msg.sender === 'bot' && (!msg.text || msg.text.trim() === '') ? (
-                    <div className="flex items-center gap-2.5 py-1 px-1 text-xs text-brand-primary">
-                      <Sparkles size={14} className="text-[#54c7ec] animate-pulse flex-shrink-0" />
-                      <span className="font-semibold tracking-wide text-brand-primary/80">Thinking...</span>
-                      <div className="flex items-center gap-1 ml-0.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-brand-primary/70 animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-1.5 h-1.5 rounded-full bg-brand-primary/70 animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-1.5 h-1.5 rounded-full bg-brand-primary/70 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    isTyping ? (
+                      <div className="flex items-center gap-2.5 py-1 px-1 text-xs text-brand-primary">
+                        <Sparkles size={14} className="text-[#54c7ec] animate-pulse flex-shrink-0" />
+                        <span className="font-semibold tracking-wide text-brand-primary/80">Thinking...</span>
+                        <div className="flex items-center gap-1 ml-0.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-brand-primary/70 animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-1.5 h-1.5 rounded-full bg-brand-primary/70 animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-1.5 h-1.5 rounded-full bg-brand-primary/70 animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="text-xs text-brand-primary/70 py-1">
+                        응답을 불러오지 못했습니다. 다시 시도해 주세요.
+                      </div>
+                    )
                   ) : msg.text ? (
                     <div className={cn(
                       "prose prose-sm max-w-none prose-p:leading-relaxed prose-a:text-brand-primary prose-a:font-semibold prose-a:underline hover:prose-a:text-brand-accent",

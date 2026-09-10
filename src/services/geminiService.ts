@@ -1,104 +1,123 @@
-import { GoogleGenAI } from "@google/genai";
-
-function getGeminiClient(): GoogleGenAI {
-  const apiKey = (process.env.GEMINI_API_KEY1 || process.env.GEMINI_API_KEY || "").trim();
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY1 is not configured. Please set GEMINI_API_KEY1 in Settings -> Environment Variables.");
-  }
-  return new GoogleGenAI({
-    apiKey,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      }
-    }
-  });
-}
-
-const SYSTEM_INSTRUCTION = `You are the "HERMEN AI Concierge", an AI expert who perfectly understands all contents, products, certifications, and pages of the HERMEN website (www.hermen.co.kr). 
-Your goal is to provide kind, accurate, and professional advice to users in Korean or English (always matching the user's language).
-
-Website Contents & Direct Page Links:
-1. Science & Certification (/trust):
-   - CPNP (EU): European Cosmetic Product Notification Portal registration complete for European Union distribution.
-   - MoCRA (USA): US Cosmetic Regulation Modernization Act registration complete for North American distribution.
-   - Clinical Testing: All products (Preserve Series) have passed skin irritation tests for sensitive skin.
-   - IP & Trademarks: Registered US & KR Trademarks.
-   - Download B2B Dossier & Wholesale Quote request options available.
-   - Page link to share: [Trust & Science Page](/trust)
-2. Products & Shop (/shop):
-   - Daily Barrier Cream (50ml): Best for dry, combination, and sensitive skin. Protects skin barrier and maintains moisture.
-   - Calming Serum (30ml): Best for sensitive, oily, and combination skin. Instant soothing and calming.
-   - Balancing Serum (30ml): Best for dry and combination skin. Anti-aging, hydration, restoring skin balance.
-   - Page link to share: [Shop Products](/shop)
-3. Brand Philosophy (/brand):
-   - "Preserve the moment." Designed to build care for skin that is built to last. 25 years of skincare expertise and data-driven Agile R&D.
-   - Page link to share: [Brand Story](/brand)
-4. AI Skin Analysis (/analysis):
-   - Selfie skin type & concern diagnosis.
-   - Page link to share: [AI Skin Analysis](/analysis)
-5. Contact & Inquiry (/inquiry):
-   - Contact email: [hermen@hermen.co.kr](mailto:hermen@hermen.co.kr)
-   - Inquiry Form for B2B, wholesale, or general inquiries.
-   - Page link to share: [Inquiry Page](/inquiry)
-
-Important Instructions:
-1. Detect the language of the user's message and respond in that same language (e.g., if the user writes in Korean, respond in Korean).
-2. Be concise, kind, and direct. Avoid overly long preamble so the response is fast and easy to read.
-3. When a user asks about CPNP certification, MoCRA, safety, or clinical testing, explain that HERMEN has completed CPNP (EU) and MoCRA (USA) registrations and passed skin irritation tests, and proactively provide the link: [Trust & Science Page](/trust).
-4. If a user provides an image of their skin or face, analyze the skin apparent in the image to suggest the user's likely skin type and potential concerns, then recommend appropriate HERMEN products.
-5. If a user expresses interest in purchasing, wholesale, or contacting HERMEN, provide both the email link [hermen@hermen.co.kr](mailto:hermen@hermen.co.kr) and the [Inquiry Page](/inquiry).
-6. DO NOT use hashtags (#) in your responses.
-7. Always format page links cleanly as Markdown links like [Page Name](/path) so users can easily click and navigate.`;
-
 export const getChatbotStreamResponse = async (
   messages: any[],
   onChunk: (text: string) => void
-) => {
+): Promise<string> => {
+  let fullText = "";
+
   try {
-    const contents = messages.map(msg => {
-      const parts: any[] = [];
-      if (msg.text) {
-        parts.push({ text: msg.text });
-      }
-      if (msg.image) {
-        const match = msg.image.match(/^data:(.*);base64,(.*)$/);
-        if (match) {
-          parts.push({
-            inlineData: {
-              mimeType: match[1],
-              data: match[2],
-            },
-          });
-        }
-      }
-      return {
-        role: msg.sender === 'user' ? 'user' : 'model',
-        parts: parts,
-      };
-    });
-
-    const client = getGeminiClient();
-    const responseStream = await client.models.generateContentStream({
-      model: "gemini-3.6-flash",
-      contents: contents,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
+    const response = await fetch("/api/chat/stream", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({ messages }),
     });
 
-    let fullText = "";
-    for await (const chunk of responseStream) {
-      if (chunk.text) {
-        fullText += chunk.text;
-        onChunk(fullText);
+    if (!response.ok) {
+      throw new Error(`Server status: ${response.status}`);
+    }
+
+    if (!response.body) {
+      throw new Error("No response stream body available.");
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const events = buffer.split("\n\n");
+      buffer = events.pop() || "";
+
+      for (const event of events) {
+        const lines = event.split("\n");
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith("data:")) {
+            const dataStr = trimmed.slice(5).trim();
+            if (!dataStr) continue;
+            try {
+              const data = JSON.parse(dataStr);
+              if (data.error) {
+                console.error("AI Stream Error Event:", data.error);
+                const errorMsg = data.error.includes("GEMINI_API_KEY")
+                  ? "⚠️ AI API 키 설정이 필요합니다. 관리자 설정(Settings)에서 GEMINI_API_KEY1을 등록해 주세요."
+                  : `⚠️ ${data.error}`;
+                onChunk(errorMsg);
+                return errorMsg;
+              }
+              if (data.fullText) {
+                fullText = data.fullText;
+                onChunk(fullText);
+              } else if (data.chunk) {
+                fullText += data.chunk;
+                onChunk(fullText);
+              }
+            } catch (err) {
+              // Ignore partial JSON parse errors
+            }
+          }
+        }
       }
     }
 
-    return fullText || "I'm sorry, I couldn't generate a response.";
-  } catch (error) {
-    console.error('Error fetching chatbot response:', error);
-    return `Error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again later.`;
+    if (fullText.trim()) {
+      return fullText;
+    }
+
+    // Fallback: If streaming returned empty, call JSON fallback endpoint
+    const jsonRes = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages }),
+    });
+
+    if (jsonRes.ok) {
+      const jsonData = await jsonRes.json();
+      if (jsonData.text) {
+        fullText = jsonData.text;
+        onChunk(fullText);
+        return fullText;
+      }
+      if (jsonData.error) {
+        const errMsg = `⚠️ ${jsonData.error}`;
+        onChunk(errMsg);
+        return errMsg;
+      }
+    }
+
+    const defaultFallback = "죄송합니다. 일시적인 연결 지연으로 답변을 생성하지 못했습니다. 다시 시도해 주세요.";
+    onChunk(defaultFallback);
+    return defaultFallback;
+  } catch (error: any) {
+    console.error("Error in getChatbotStreamResponse:", error);
+    
+    // Emergency Fallback: try standard /api/chat if stream crashed
+    try {
+      const jsonRes = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages }),
+      });
+      if (jsonRes.ok) {
+        const jsonData = await jsonRes.json();
+        if (jsonData.text) {
+          fullText = jsonData.text;
+          onChunk(fullText);
+          return fullText;
+        }
+      }
+    } catch (fallbackErr) {
+      console.error("Fallback chat API also failed:", fallbackErr);
+    }
+
+    const userFacingError = "챗봇 연결 중 오류가 발생했습니다. 네트워크 상태 또는 API 키 설정을 확인하신 후 다시 시도해 주세요.";
+    onChunk(userFacingError);
+    return userFacingError;
   }
 };
 
@@ -108,4 +127,3 @@ export const getChatbotResponse = async (messages: any[]) => {
     textResult = chunkText;
   });
 };
-
