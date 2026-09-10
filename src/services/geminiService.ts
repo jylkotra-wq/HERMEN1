@@ -1,13 +1,19 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || "",
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
-    }
+function getGeminiClient(): GoogleGenAI {
+  const apiKey = (process.env.GEMINI_API_KEY1 || process.env.GEMINI_API_KEY || "").trim();
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY1 is not configured. Please set GEMINI_API_KEY1 in Settings -> Environment Variables.");
   }
-});
+  return new GoogleGenAI({
+    apiKey,
+    httpOptions: {
+      headers: {
+        'User-Agent': 'aistudio-build',
+      }
+    }
+  });
+}
 
 const SYSTEM_INSTRUCTION = `You are the "HERMEN AI Concierge", an AI expert who perfectly understands all contents, products, certifications, and pages of the HERMEN website (www.hermen.co.kr). 
 Your goal is to provide kind, accurate, and professional advice to users in Korean or English (always matching the user's language).
@@ -72,7 +78,8 @@ export const getChatbotStreamResponse = async (
       };
     });
 
-    const responseStream = await ai.models.generateContentStream({
+    const client = getGeminiClient();
+    const responseStream = await client.models.generateContentStream({
       model: "gemini-3.6-flash",
       contents: contents,
       config: {

@@ -177,17 +177,21 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
                   msg.sender === 'user' ? "bg-brand-secondary text-brand-primary border border-black/5" : "bg-brand-secondary text-brand-primary"
                 )}>
                   {msg.image && <img src={msg.image} alt="User upload" className="rounded mb-2 max-w-full" />}
-                  {msg.text && (
+                  {msg.sender === 'bot' && (!msg.text || msg.text.trim() === '') ? (
+                    <div className="flex items-center gap-2.5 py-1 px-1 text-xs text-brand-primary">
+                      <Sparkles size={14} className="text-[#54c7ec] animate-pulse flex-shrink-0" />
+                      <span className="font-semibold tracking-wide text-brand-primary/80">Thinking...</span>
+                      <div className="flex items-center gap-1 ml-0.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-brand-primary/70 animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-brand-primary/70 animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-brand-primary/70 animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                    </div>
+                  ) : msg.text ? (
                     <div className={cn(
                       "prose prose-sm max-w-none prose-p:leading-relaxed prose-a:text-brand-primary prose-a:font-semibold prose-a:underline hover:prose-a:text-brand-accent",
                       msg.sender === 'user' ? "prose-p:text-brand-primary" : "prose-p:text-brand-primary"
                     )}>
-                    {msg.sender === 'bot' && !msg.text ? (
-                      <div className="flex items-center gap-2 py-1 text-xs text-brand-primary/70 italic font-mono">
-                        <span className="w-2 h-2 rounded-full bg-brand-primary/60 animate-pulse" />
-                        <span>HERMEN AI is responding...</span>
-                      </div>
-                    ) : (
                       <Markdown
                         components={{
                           a: ({ href, children }) => {
@@ -217,9 +221,8 @@ export const ChatbotAnalysis = ({ isOpen, onClose, initialMessage }: { isOpen: b
                       >
                         {msg.text}
                       </Markdown>
-                    )}
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
             ))}
