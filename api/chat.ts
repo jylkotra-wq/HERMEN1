@@ -64,7 +64,7 @@ export default async function handler(req: any, res: any) {
     }
   }
 
-  const { messages } = body || {};
+  const { messages, stream = true } = body || {};
   if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: "No messages provided." });
   }
@@ -107,8 +107,49 @@ export default async function handler(req: any, res: any) {
       };
     });
 
+    // If streaming requested
+    if (stream) {
+      res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+      res.setHeader("Cache-Control", "no-cache, no-transform");
+      res.setHeader("Connection", "keep-alive");
+      res.setHeader("X-Accel-Buffering", "no");
+      if (res.flushHeaders) {
+        res.flushHeaders();
+      }
+
+      const sendEvent = (data: any) => {
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+      };
+
+      try {
+        const responseStream = await ai.models.generateContentStream({
+          model: "gemini-flash-lite-latest",
+          contents,
+          config: {
+            systemInstruction: SYSTEM_INSTRUCTION,
+          },
+        });
+
+        let fullText = "";
+        for await (const chunk of responseStream) {
+          if (chunk.text) {
+            fullText += chunk.text;
+            sendEvent({ chunk: chunk.text, fullText });
+          }
+        }
+
+        sendEvent({ done: true, fullText: fullText || "안녕하세요! 무엇을 도와드릴까요?" });
+        return res.end();
+      } catch (streamErr: any) {
+        console.error("Stream generation error:", streamErr);
+        sendEvent({ error: streamErr.message || "Failed to generate stream" });
+        return res.end();
+      }
+    }
+
+    // Non-streaming fallback
     const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
+      model: "gemini-flash-lite-latest",
       contents,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -119,7 +160,7 @@ export default async function handler(req: any, res: any) {
       text: response.text || "안녕하세요! HERMEN AI 컨시어지입니다. 무엇을 도와드릴까요?",
     });
   } catch (error: any) {
-    console.error("Vercel Serverless Gemini API Error:", error);
+    console.error("Gemini API Error in /api/chat:", error);
     return res.status(500).json({
       error: error?.message || "An error occurred while calling Gemini API.",
       details: error?.toString()

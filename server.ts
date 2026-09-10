@@ -150,7 +150,7 @@ async function startServer() {
       });
 
       const responseStream = await client.models.generateContentStream({
-        model: "gemini-3.6-flash",
+        model: "gemini-flash-lite-latest",
         contents,
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
@@ -175,14 +175,14 @@ async function startServer() {
     }
   });
 
-  // Fallback AI Chatbot JSON endpoint
+  // Main AI Chatbot endpoint (Supports both SSE streaming and JSON fallback)
   app.post("/api/chat", async (req, res) => {
-    try {
-      const { messages } = req.body;
-      if (!Array.isArray(messages) || messages.length === 0) {
-        return res.status(400).json({ error: "No messages provided." });
-      }
+    const { messages, stream = true } = req.body;
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: "No messages provided." });
+    }
 
+    try {
       const client = getGeminiClient();
       const contents = messages.map((msg: any) => {
         const parts: any[] = [];
@@ -204,17 +204,56 @@ async function startServer() {
         };
       });
 
+      if (stream) {
+        res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+        res.setHeader("Cache-Control", "no-cache, no-transform");
+        res.setHeader("Connection", "keep-alive");
+        res.setHeader("X-Accel-Buffering", "no");
+        if (res.flushHeaders) {
+          res.flushHeaders();
+        }
+
+        const sendEvent = (data: any) => {
+          res.write(`data: ${JSON.stringify(data)}\n\n`);
+        };
+
+        const responseStream = await client.models.generateContentStream({
+          model: "gemini-flash-lite-latest",
+          contents,
+          config: {
+            systemInstruction: SYSTEM_INSTRUCTION,
+          },
+        });
+
+        let fullText = "";
+        for await (const chunk of responseStream) {
+          if (chunk.text) {
+            fullText += chunk.text;
+            sendEvent({ chunk: chunk.text, fullText });
+          }
+        }
+
+        sendEvent({ done: true, fullText: fullText || "안녕하세요! 무엇을 도와드릴까요?" });
+        return res.end();
+      }
+
       const response = await client.models.generateContent({
-        model: "gemini-3.6-flash",
+        model: "gemini-flash-lite-latest",
         contents,
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
         },
       });
 
-      return res.json({ text: response.text || "I'm sorry, I couldn't generate a response." });
+      return res.json({ text: response.text || "안녕하세요! 무엇을 도와드릴까요?" });
     } catch (error: any) {
-      console.error("Gemini JSON error on server:", error);
+      console.error("Gemini API error on server in /api/chat:", error);
+      if (stream && !res.headersSent) {
+        return res.status(500).json({ error: error?.message || "An error occurred while connecting to AI." });
+      } else if (stream) {
+        res.write(`data: ${JSON.stringify({ error: error?.message })}\n\n`);
+        return res.end();
+      }
       return res.status(500).json({ 
         error: error?.message || "An error occurred while connecting to AI." 
       });

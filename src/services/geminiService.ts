@@ -7,100 +7,132 @@ export const getChatbotStreamResponse = async (
 ): Promise<string> => {
   let fullText = "";
 
-  // Strategy 1: Attempt Server-Sent Events (SSE) stream via /api/chat/stream
+  // 1. Direct High-Speed Streaming API call to /api/chat (supported by both Express and Vercel)
   try {
-    const streamRes = await fetch("/api/chat/stream", {
+    const response = await fetch("/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages, stream: true }),
     });
 
-    if (streamRes.ok && streamRes.body) {
-      const reader = streamRes.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let buffer = "";
+    if (response.ok && response.body) {
+      const contentType = response.headers.get("content-type") || "";
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      // Handle Event Stream (SSE)
+      if (contentType.includes("text/event-stream")) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
 
-        buffer += decoder.decode(value, { stream: true });
-        const events = buffer.split("\n\n");
-        buffer = events.pop() || "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        for (const event of events) {
-          const lines = event.split("\n");
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (trimmed.startsWith("data:")) {
-              const dataStr = trimmed.slice(5).trim();
-              if (!dataStr) continue;
-              try {
-                const data = JSON.parse(dataStr);
-                if (data.error) {
-                  throw new Error(data.error);
-                }
-                if (data.fullText) {
-                  fullText = data.fullText;
-                  onChunk(fullText);
-                } else if (data.chunk) {
-                  fullText += data.chunk;
-                  onChunk(fullText);
-                }
-              } catch (parseErr: any) {
-                if (parseErr.message && !parseErr.message.includes("Unexpected end of JSON")) {
-                  throw parseErr;
+          buffer += decoder.decode(value, { stream: true });
+          const events = buffer.split("\n\n");
+          buffer = events.pop() || "";
+
+          for (const event of events) {
+            const lines = event.split("\n");
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (trimmed.startsWith("data:")) {
+                const dataStr = trimmed.slice(5).trim();
+                if (!dataStr) continue;
+                try {
+                  const data = JSON.parse(dataStr);
+                  if (data.error) {
+                    throw new Error(data.error);
+                  }
+                  if (data.fullText) {
+                    fullText = data.fullText;
+                    onChunk(fullText);
+                  } else if (data.chunk) {
+                    fullText += data.chunk;
+                    onChunk(fullText);
+                  }
+                } catch (parseErr: any) {
+                  if (parseErr.message && !parseErr.message.includes("Unexpected end of JSON")) {
+                    throw parseErr;
+                  }
                 }
               }
             }
           }
         }
-      }
 
-      if (fullText.trim()) {
-        return fullText;
-      }
-    }
-  } catch (streamErr: any) {
-    console.warn("SSE stream failed or not supported in this environment, trying standard API...", streamErr.message);
-  }
-
-  // Strategy 2: Attempt standard JSON API (/api/chat) - Works on Vercel Serverless & Express
-  try {
-    const jsonRes = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ messages }),
-    });
-
-    if (jsonRes.ok) {
-      const data = await jsonRes.json();
-      if (data.text) {
-        fullText = data.text;
-        onChunk(fullText);
-        return fullText;
-      }
-      if (data.error) {
-        throw new Error(data.error);
+        if (fullText.trim()) {
+          return fullText;
+        }
+      } else {
+        // Standard JSON response
+        const data = await response.json();
+        if (data.text) {
+          fullText = data.text;
+          onChunk(fullText);
+          return fullText;
+        }
+        if (data.error) {
+          throw new Error(data.error);
+        }
       }
     } else {
       let errDetail = "";
       try {
-        const errJson = await jsonRes.json();
+        const errJson = await response.json();
         errDetail = errJson.error || errJson.message || "";
       } catch {
-        errDetail = `HTTP ${jsonRes.status} ${jsonRes.statusText}`;
+        errDetail = `HTTP ${response.status} ${response.statusText}`;
       }
-      throw new Error(errDetail || `Server returned ${jsonRes.status}`);
+      throw new Error(errDetail || `Server returned ${response.status}`);
     }
   } catch (apiErr: any) {
-    console.warn("Server API /api/chat failed, checking client direct fallback:", apiErr.message);
+    console.warn("Primary /api/chat stream failed, checking fallbacks:", apiErr.message);
 
-    // Strategy 3: Client Direct Fallback via @google/genai in browser if API key is in bundle
+    // 2. Secondary Fallback: Try /api/chat/stream if on Express server
+    try {
+      const streamRes = await fetch("/api/chat/stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages }),
+      });
+      if (streamRes.ok && streamRes.body) {
+        const reader = streamRes.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const events = buffer.split("\n\n");
+          buffer = events.pop() || "";
+          for (const event of events) {
+            for (const line of event.split("\n")) {
+              const trimmed = line.trim();
+              if (trimmed.startsWith("data:")) {
+                const dataStr = trimmed.slice(5).trim();
+                if (!dataStr) continue;
+                try {
+                  const data = JSON.parse(dataStr);
+                  if (data.fullText) {
+                    fullText = data.fullText;
+                    onChunk(fullText);
+                  } else if (data.chunk) {
+                    fullText += data.chunk;
+                    onChunk(fullText);
+                  }
+                } catch {}
+              }
+            }
+          }
+        }
+        if (fullText.trim()) return fullText;
+      }
+    } catch {}
+
+    // 3. Client Direct Fallback via @google/genai in browser if client-side API key exists
     const clientKey = (process.env.GEMINI_API_KEY1 || process.env.GEMINI_API_KEY || "").trim();
     if (clientKey) {
       try {
@@ -133,22 +165,27 @@ export const getChatbotStreamResponse = async (
           };
         });
 
-        const response = await ai.models.generateContent({
-          model: "gemini-3.6-flash",
+        const responseStream = await ai.models.generateContentStream({
+          model: "gemini-flash-lite-latest",
           contents,
           config: {
             systemInstruction: SYSTEM_INSTRUCTION,
           },
         });
 
-        if (response.text) {
-          fullText = response.text;
-          onChunk(fullText);
+        for await (const chunk of responseStream) {
+          if (chunk.text) {
+            fullText += chunk.text;
+            onChunk(fullText);
+          }
+        }
+
+        if (fullText.trim()) {
           return fullText;
         }
       } catch (clientErr: any) {
-        console.error("Client direct fallback also failed:", clientErr);
-        const errorText = `⚠️ 챗봇 응답 생성 실패: ${clientErr.message || apiErr.message || 'API 키 또는 네트워크 확인 필요'}`;
+        console.error("Client direct fallback error:", clientErr);
+        const errorText = `⚠️ 챗봇 응답 생성 실패: ${clientErr.message || apiErr.message || 'API 키 확인 필요'}`;
         onChunk(errorText);
         return errorText;
       }
