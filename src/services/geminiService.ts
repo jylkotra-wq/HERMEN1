@@ -1,11 +1,15 @@
+import { GoogleGenAI } from "@google/genai";
+import { SYSTEM_INSTRUCTION } from "./geminiConfig";
+
 export const getChatbotStreamResponse = async (
   messages: any[],
   onChunk: (text: string) => void
 ): Promise<string> => {
   let fullText = "";
 
+  // Strategy 1: Attempt Server-Sent Events (SSE) stream via /api/chat/stream
   try {
-    const response = await fetch("/api/chat/stream", {
+    const streamRes = await fetch("/api/chat/stream", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -13,112 +17,149 @@ export const getChatbotStreamResponse = async (
       body: JSON.stringify({ messages }),
     });
 
-    if (!response.ok) {
-      throw new Error(`Server status: ${response.status}`);
-    }
+    if (streamRes.ok && streamRes.body) {
+      const reader = streamRes.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
 
-    if (!response.body) {
-      throw new Error("No response stream body available.");
-    }
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-    let buffer = "";
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split("\n\n");
+        buffer = events.pop() || "";
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const events = buffer.split("\n\n");
-      buffer = events.pop() || "";
-
-      for (const event of events) {
-        const lines = event.split("\n");
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (trimmed.startsWith("data:")) {
-            const dataStr = trimmed.slice(5).trim();
-            if (!dataStr) continue;
-            try {
-              const data = JSON.parse(dataStr);
-              if (data.error) {
-                console.error("AI Stream Error Event:", data.error);
-                const errorMsg = data.error.includes("GEMINI_API_KEY")
-                  ? "⚠️ AI API 키 설정이 필요합니다. 관리자 설정(Settings)에서 GEMINI_API_KEY1을 등록해 주세요."
-                  : `⚠️ ${data.error}`;
-                onChunk(errorMsg);
-                return errorMsg;
+        for (const event of events) {
+          const lines = event.split("\n");
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith("data:")) {
+              const dataStr = trimmed.slice(5).trim();
+              if (!dataStr) continue;
+              try {
+                const data = JSON.parse(dataStr);
+                if (data.error) {
+                  throw new Error(data.error);
+                }
+                if (data.fullText) {
+                  fullText = data.fullText;
+                  onChunk(fullText);
+                } else if (data.chunk) {
+                  fullText += data.chunk;
+                  onChunk(fullText);
+                }
+              } catch (parseErr: any) {
+                if (parseErr.message && !parseErr.message.includes("Unexpected end of JSON")) {
+                  throw parseErr;
+                }
               }
-              if (data.fullText) {
-                fullText = data.fullText;
-                onChunk(fullText);
-              } else if (data.chunk) {
-                fullText += data.chunk;
-                onChunk(fullText);
-              }
-            } catch (err) {
-              // Ignore partial JSON parse errors
             }
           }
         }
       }
-    }
 
-    if (fullText.trim()) {
-      return fullText;
+      if (fullText.trim()) {
+        return fullText;
+      }
     }
+  } catch (streamErr: any) {
+    console.warn("SSE stream failed or not supported in this environment, trying standard API...", streamErr.message);
+  }
 
-    // Fallback: If streaming returned empty, call JSON fallback endpoint
+  // Strategy 2: Attempt standard JSON API (/api/chat) - Works on Vercel Serverless & Express
+  try {
     const jsonRes = await fetch("/api/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ messages }),
     });
 
     if (jsonRes.ok) {
-      const jsonData = await jsonRes.json();
-      if (jsonData.text) {
-        fullText = jsonData.text;
+      const data = await jsonRes.json();
+      if (data.text) {
+        fullText = data.text;
         onChunk(fullText);
         return fullText;
       }
-      if (jsonData.error) {
-        const errMsg = `⚠️ ${jsonData.error}`;
-        onChunk(errMsg);
-        return errMsg;
+      if (data.error) {
+        throw new Error(data.error);
       }
+    } else {
+      let errDetail = "";
+      try {
+        const errJson = await jsonRes.json();
+        errDetail = errJson.error || errJson.message || "";
+      } catch {
+        errDetail = `HTTP ${jsonRes.status} ${jsonRes.statusText}`;
+      }
+      throw new Error(errDetail || `Server returned ${jsonRes.status}`);
     }
+  } catch (apiErr: any) {
+    console.warn("Server API /api/chat failed, checking client direct fallback:", apiErr.message);
 
-    const defaultFallback = "죄송합니다. 일시적인 연결 지연으로 답변을 생성하지 못했습니다. 다시 시도해 주세요.";
-    onChunk(defaultFallback);
-    return defaultFallback;
-  } catch (error: any) {
-    console.error("Error in getChatbotStreamResponse:", error);
-    
-    // Emergency Fallback: try standard /api/chat if stream crashed
-    try {
-      const jsonRes = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages }),
-      });
-      if (jsonRes.ok) {
-        const jsonData = await jsonRes.json();
-        if (jsonData.text) {
-          fullText = jsonData.text;
+    // Strategy 3: Client Direct Fallback via @google/genai in browser if API key is in bundle
+    const clientKey = (process.env.GEMINI_API_KEY1 || process.env.GEMINI_API_KEY || "").trim();
+    if (clientKey) {
+      try {
+        const ai = new GoogleGenAI({
+          apiKey: clientKey,
+          httpOptions: {
+            headers: {
+              'User-Agent': 'aistudio-build',
+            }
+          }
+        });
+
+        const contents = messages.map((msg: any) => {
+          const parts: any[] = [];
+          if (msg.text) parts.push({ text: msg.text });
+          if (msg.image) {
+            const match = typeof msg.image === "string" ? msg.image.match(/^data:(.*);base64,(.*)$/) : null;
+            if (match) {
+              parts.push({
+                inlineData: {
+                  mimeType: match[1],
+                  data: match[2],
+                },
+              });
+            }
+          }
+          return {
+            role: msg.sender === 'user' ? 'user' : 'model',
+            parts: parts.length > 0 ? parts : [{ text: ' ' }],
+          };
+        });
+
+        const response = await ai.models.generateContent({
+          model: "gemini-3.6-flash",
+          contents,
+          config: {
+            systemInstruction: SYSTEM_INSTRUCTION,
+          },
+        });
+
+        if (response.text) {
+          fullText = response.text;
           onChunk(fullText);
           return fullText;
         }
+      } catch (clientErr: any) {
+        console.error("Client direct fallback also failed:", clientErr);
+        const errorText = `⚠️ 챗봇 응답 생성 실패: ${clientErr.message || apiErr.message || 'API 키 또는 네트워크 확인 필요'}`;
+        onChunk(errorText);
+        return errorText;
       }
-    } catch (fallbackErr) {
-      console.error("Fallback chat API also failed:", fallbackErr);
     }
 
-    const userFacingError = "챗봇 연결 중 오류가 발생했습니다. 네트워크 상태 또는 API 키 설정을 확인하신 후 다시 시도해 주세요.";
-    onChunk(userFacingError);
-    return userFacingError;
+    const failureText = `⚠️ 챗봇 서버 응답 실패: ${apiErr.message || 'API 키를 확인해 주세요'}. (배포 플랫폼 환경변수에 GEMINI_API_KEY1을 등록했는지 확인해 주세요.)`;
+    onChunk(failureText);
+    return failureText;
   }
+
+  return fullText || "I'm sorry, I couldn't generate a response.";
 };
 
 export const getChatbotResponse = async (messages: any[]) => {
