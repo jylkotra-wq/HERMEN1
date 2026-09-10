@@ -230,6 +230,18 @@ export const SITE_SEARCH_INDEX: SearchItem[] = [
     path: '/',
     badge: '24/7 Concierge'
   },
+  {
+    id: 'media-tiktok-reviews',
+    title: 'HERMEN on TikTok — Short-Form Reviews & Skincare Moments',
+    category: 'Service',
+    description: 'Watch real customer and creator reviews, skincare routines, and viral moments on TikTok.',
+    keywords: [
+      'tiktok', '틱톡', '동영상', '영상', '쇼츠', 'shorts', 'video', 'review', '리뷰', '후기',
+      'viral', 'creators', '크리에이터', 'routine', '루틴'
+    ],
+    path: '/',
+    badge: 'TikTok'
+  },
 
   // ==========================================
   // 6. B2B WHOLESALE & GLOBAL DISTRIBUTION (/inquiry)
