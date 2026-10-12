@@ -1,9 +1,103 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Volume2, VolumeX } from 'lucide-react';
 import { PRODUCTS, Product } from '../constants';
 import { TikTokSection } from '../components/home/TikTokSection';
+
+const BrandVideoCard = () => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = useState(true);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Strict muted enforcement required by modern browsers (iOS/Chrome) for autoplay
+    video.muted = true;
+    video.defaultMuted = true;
+    setIsMuted(true);
+
+    const tryPlay = () => {
+      const promise = video.play();
+      if (promise !== undefined) {
+        promise.catch(() => {
+          // Fallback: retry play on user interaction if browser policy requires it
+          const onInteract = () => {
+            if (video) {
+              video.muted = true;
+              video.play().catch(() => {});
+            }
+            window.removeEventListener('click', onInteract);
+            window.removeEventListener('touchstart', onInteract);
+          };
+          window.addEventListener('click', onInteract, { once: true });
+          window.addEventListener('touchstart', onInteract, { once: true });
+        });
+      }
+    };
+
+    tryPlay();
+  }, []);
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+    const nextMuted = !isMuted;
+    video.muted = nextMuted;
+    setIsMuted(nextMuted);
+    if (video.paused) {
+      video.play().catch(() => {});
+    }
+  };
+
+  return (
+    <div className="relative w-full h-full min-h-[300px] sm:min-h-[380px] rounded-2xl overflow-hidden bg-neutral-900 shadow-sm border border-neutral-200 flex flex-col justify-between transition-all duration-300 hover:shadow-lg group">
+      <video
+        ref={videoRef}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        className="w-full h-full object-cover block absolute inset-0 transition-transform duration-700 group-hover:scale-105"
+      >
+        <source src="/products/brand-video.mp4" type="video/mp4" />
+        <source src="/brand-video.mp4" type="video/mp4" />
+      </video>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/25 pointer-events-none" />
+
+      {/* Top Tag */}
+      <div className="relative z-10 p-3 sm:p-4 flex justify-between items-start pointer-events-none">
+        <span className="text-[10px] sm:text-[11px] tracking-[0.25em] uppercase font-bold text-white/90 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
+          Brand Film
+        </span>
+      </div>
+
+      {/* Bottom info and mute toggle button */}
+      <div className="relative z-10 p-3 sm:p-4 flex items-end justify-between">
+        <div className="text-white drop-shadow-sm pointer-events-none">
+          <p className="text-[11px] sm:text-xs font-semibold tracking-wide text-white/90 uppercase">
+            HERMEN
+          </p>
+          <p className="text-[10px] text-white/70 font-light">
+            Preserve the moment.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={toggleMute}
+          aria-label={isMuted ? "Unmute brand video" : "Mute brand video"}
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur-md border border-white/20 flex items-center justify-center transition-all active:scale-90 shadow-md cursor-pointer hover:scale-105"
+        >
+          {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const ProductCard = ({ product, idx, onClick }: { product: Product; idx: number; onClick: () => void }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -75,10 +169,10 @@ export const HomePage = () => {
   const navigate = useNavigate();
   const [heroImgSrc, setHeroImgSrc] = useState('/home-hero.jpg');
 
-  // Mobile/Tablet product slider controls & dots pagination
+  // Mobile/Tablet product slider controls & dots pagination (3 products + 1 brand video)
   const sliderRef = useRef<HTMLDivElement>(null);
   const [activeDot, setActiveDot] = useState(0);
-  const totalProducts = PRODUCTS.length;
+  const totalSliderItems = PRODUCTS.length + 1;
 
   const updateScrollState = () => {
     if (!sliderRef.current) return;
@@ -89,15 +183,15 @@ export const HomePage = () => {
       return;
     }
     const ratio = scrollLeft / maxScroll;
-    const index = Math.round(ratio * (totalProducts - 1));
-    setActiveDot(Math.min(Math.max(0, index), totalProducts - 1));
+    const index = Math.round(ratio * (totalSliderItems - 1));
+    setActiveDot(Math.min(Math.max(0, index), totalSliderItems - 1));
   };
 
   const scrollToDot = (index: number) => {
     if (!sliderRef.current) return;
     const { scrollWidth, clientWidth } = sliderRef.current;
     const maxScroll = scrollWidth - clientWidth;
-    const targetScroll = (index / (totalProducts - 1)) * maxScroll;
+    const targetScroll = (index / (totalSliderItems - 1)) * maxScroll;
     sliderRef.current.scrollTo({
       left: targetScroll,
       behavior: 'smooth',
@@ -109,7 +203,7 @@ export const HomePage = () => {
     updateScrollState();
     window.addEventListener('resize', updateScrollState);
     return () => window.removeEventListener('resize', updateScrollState);
-  }, [totalProducts]);
+  }, [totalSliderItems]);
 
   const handleHeroImageError = () => {
     if (heroImgSrc === '/home-hero.jpg') {
@@ -177,18 +271,23 @@ export const HomePage = () => {
                 />
               </div>
             ))}
+
+            {/* Brand Video Card in Mobile/Tablet Slider */}
+            <div className="w-[calc(50%-6px)] min-w-[calc(50%-6px)] sm:w-[calc(33.333%-16px)] sm:min-w-[calc(33.333%-16px)] flex-shrink-0 snap-start">
+              <BrandVideoCard />
+            </div>
           </div>
 
           {/* Dots Pagination below Products matching Mobile */}
           <div className="flex items-center justify-center gap-2.5 mt-6">
-            {PRODUCTS.map((_, dotIdx) => {
+            {Array.from({ length: totalSliderItems }).map((_, dotIdx) => {
               const isActive = activeDot === dotIdx;
               return (
                 <button
                   key={dotIdx}
                   onClick={() => scrollToDot(dotIdx)}
                   type="button"
-                  aria-label={`Go to product ${dotIdx + 1}`}
+                  aria-label={`Go to item ${dotIdx + 1}`}
                   className={`rounded-full transition-all duration-300 ${
                     isActive 
                       ? 'w-3.5 h-3.5 bg-[#54c7ec] scale-110 shadow-sm' 
@@ -214,17 +313,7 @@ export const HomePage = () => {
 
           {/* Brand Video Card: Same dimensions and height as product cards */}
           <div className="h-full flex flex-col">
-            <div className="relative w-full h-full min-h-[380px] rounded-2xl overflow-hidden bg-neutral-900 shadow-sm border border-neutral-200 flex flex-col justify-between transition-all duration-300 hover:shadow-lg group">
-              <video
-                src="/brand-video.mp4"
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-full object-cover block absolute inset-0 transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30 pointer-events-none" />
-            </div>
+            <BrandVideoCard />
           </div>
         </div>
       </section>

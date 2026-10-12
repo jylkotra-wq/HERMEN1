@@ -44,6 +44,7 @@ export const Header = () => {
   const navItems = [
     { name: 'BRAND', path: '/brand' },
     { name: 'PRODUCTS', path: '/shop' },
+    { name: 'PARTNERS', path: '/partners' },
     { name: 'ANALYSIS', path: '/analysis' },
     { name: 'TRUST', path: '/trust' },
     { name: 'INQUIRY', path: '/inquiry' },

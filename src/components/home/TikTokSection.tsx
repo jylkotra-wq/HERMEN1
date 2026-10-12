@@ -54,13 +54,16 @@ const VideoCardMedia = ({
   const isDirectVideo = item.videoUrl && !item.videoUrl.includes('tiktok.com');
   const resolvedUrl = getResolvedVideoUrl(item.videoUrl);
 
-  if (isDirectVideo) {
+  const [hasError, setHasError] = useState(false);
+
+  if (isDirectVideo && !hasError) {
     return (
       <video
         src={`${resolvedUrl}#t=0.001`}
         preload="metadata"
         muted
         playsInline
+        onError={() => setHasError(true)}
         className={`${className} pointer-events-none`}
       />
     );
@@ -94,26 +97,14 @@ export const TikTokSection = () => {
     setIsPlaying(true);
   }, [total]);
 
-  // 10-second automatic rotation timer
-  useEffect(() => {
-    if (!isPlaying) return;
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % total);
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [currentIndex, isPlaying, total]);
-
+  // Play / Pause toggle
   const togglePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!videoRef.current) return;
     if (isPlaying) {
       videoRef.current.pause();
-      setIsPlaying(false);
     } else {
-      videoRef.current.play()
-        .then(() => setIsPlaying(true))
-        .catch(() => setIsPlaying(false));
+      videoRef.current.play().catch(() => {});
     }
   };
 
@@ -245,11 +236,17 @@ export const TikTokSection = () => {
                 ref={videoRef}
                 src={getResolvedVideoUrl(currentItem.videoUrl)}
                 autoPlay
-                loop
                 muted={isMuted}
                 playsInline
                 preload="auto"
-                className="w-full h-full object-cover block outline-none border-0"
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                onEnded={nextSlide}
+                onError={(e) => {
+                  // Fallback if video file is missing or still uploading
+                  console.warn(`Video file not found or failed to load: ${currentItem.videoUrl}`);
+                }}
+                className="w-full h-full object-cover block outline-none border-0 bg-black"
               />
 
               {/* Subtle gradient vignette */}

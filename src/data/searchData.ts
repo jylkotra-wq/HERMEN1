@@ -244,6 +244,39 @@ export const SITE_SEARCH_INDEX: SearchItem[] = [
   },
 
   // ==========================================
+  // PARTNERS (Walmart, Amazon, Distribution)
+  // ==========================================
+  {
+    id: 'partners-overview',
+    title: 'Official Partners & Retail Channels',
+    category: 'Brand Story',
+    description: 'Explore HERMEN’s global retail and distribution partners including Walmart and Amazon.',
+    keywords: ['partners', 'partner', '파트너', '파트너스', 'walmart', 'amazon', '월마트', '아마존', 'retail', '유통', '채널', 'distributor'],
+    path: '/partners',
+    badge: 'Partners'
+  },
+  {
+    id: 'partner-walmart',
+    title: 'Walmart (Official Partner)',
+    category: 'Brand Story',
+    description: 'HERMEN partnership with Walmart, North America’s largest omnichannel retailer.',
+    keywords: ['walmart', '월마트', 'walmart.com', 'north america', 'retailer', 'partner', '파트너', '미국유통'],
+    path: '/partners',
+    image: '/partners/walmart.svg',
+    badge: 'Walmart'
+  },
+  {
+    id: 'partner-amazon',
+    title: 'Amazon (Official Partner)',
+    category: 'Brand Story',
+    description: 'HERMEN on Amazon Global Store, offering prime delivery and worldwide cross-border shipping.',
+    keywords: ['amazon', '아마존', 'amazon.com', 'prime', 'global store', 'partner', '파트너', '해외직구'],
+    path: '/partners',
+    image: '/partners/amazon.svg',
+    badge: 'Amazon'
+  },
+
+  // ==========================================
   // 6. B2B WHOLESALE & GLOBAL DISTRIBUTION (/inquiry)
   // ==========================================
   {

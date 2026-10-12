@@ -29,6 +29,9 @@ export const Footer = () => (
             <Link to="/brand" className="hover:text-brand-primary transition-colors">About Us</Link>
           </li>
           <li>
+            <Link to="/partners" className="hover:text-brand-primary transition-colors">Partners</Link>
+          </li>
+          <li>
             <Link to="/admin/chats" className="hover:text-brand-primary/40 transition-colors text-xs">Admin Workspace</Link>
           </li>
         </ul>
@@ -38,8 +41,7 @@ export const Footer = () => (
       <p>© 2026 HERMEN. ALL RIGHTS RESERVED.</p>
       <div className="flex space-x-6 mt-4 md:mt-0">
         <a href="https://www.instagram.com/hermen_global?igsh=bXVucTFyOTE2eWph" target="_blank" rel="noopener noreferrer" className="hover:text-brand-primary transition-colors">Instagram</a>
-        <span>Youtube</span>
-        <span>TikTok</span>
+        <a href="https://www.tiktok.com/@hermenusa" target="_blank" rel="noopener noreferrer" className="hover:text-brand-primary transition-colors">TikTok</a>
       </div>
     </div>
   </footer>

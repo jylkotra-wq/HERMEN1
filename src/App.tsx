@@ -17,6 +17,7 @@ import { ShopPage } from './pages/ShopPage';
 import { AnalysisPage } from './pages/AnalysisPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { BrandPage } from './pages/BrandPage';
+import { PartnersPage } from './pages/PartnersPage';
 import { InquiryPage } from './pages/InquiryPage';
 import { TrustSafetyPage } from './pages/TrustSafetyPage';
 import { AdminChatsPage } from './pages/AdminChatsPage';
@@ -53,6 +54,7 @@ function AppContent() {
             <Routes location={location}>
               <Route path="/" element={<HomePage />} />
               <Route path="/shop" element={<ShopPage />} />
+              <Route path="/partners" element={<PartnersPage />} />
               <Route path="/analysis" element={<AnalysisPage />} />
               <Route path="/product/:id" element={<ProductDetailPage />} />
               <Route path="/brand" element={<BrandPage />} />
