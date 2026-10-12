@@ -288,7 +288,7 @@ export const TikTokSection = () => {
               }}
               className="bg-white/95 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 flex items-center justify-between gap-2.5 shadow-xl cursor-pointer hover:bg-white transition-all group border-0 outline-none"
             >
-              {/* Product Thumbnail with Badge */}
+              {/* Product Thumbnail */}
               <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-neutral-100 p-1 flex-shrink-0 flex items-center justify-center border-0">
                 <img 
                   src={currentItem.productImage || currentItem.thumbnail} 
@@ -296,11 +296,6 @@ export const TikTokSection = () => {
                   className="w-full h-full object-contain border-0"
                   referrerPolicy="no-referrer"
                 />
-                {currentItem.badgeNumber && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-black text-white text-[9px] font-bold flex items-center justify-center border-0">
-                    {currentItem.badgeNumber}
-                  </span>
-                )}
               </div>
 
               {/* Product Info (Name, Subtitle, Price) */}
