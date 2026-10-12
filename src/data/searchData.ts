@@ -262,7 +262,7 @@ export const SITE_SEARCH_INDEX: SearchItem[] = [
     description: 'HERMEN partnership with Walmart, North America’s largest omnichannel retailer.',
     keywords: ['walmart', '월마트', 'walmart.com', 'north america', 'retailer', 'partner', '파트너', '미국유통'],
     path: '/partners',
-    image: '/partners/walmart.svg',
+    image: '/partners/walmart.png',
     badge: 'Walmart'
   },
   {
@@ -272,7 +272,7 @@ export const SITE_SEARCH_INDEX: SearchItem[] = [
     description: 'HERMEN on Amazon Global Store, offering prime delivery and worldwide cross-border shipping.',
     keywords: ['amazon', '아마존', 'amazon.com', 'prime', 'global store', 'partner', '파트너', '해외직구'],
     path: '/partners',
-    image: '/partners/amazon.svg',
+    image: '/partners/Amazon.png',
     badge: 'Amazon'
   },
 

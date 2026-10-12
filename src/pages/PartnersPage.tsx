@@ -14,13 +14,13 @@ export const PartnersPage: React.FC = () => {
     {
       id: 'walmart',
       name: 'Walmart',
-      image: '/partners/walmart.svg',
+      image: '/partners/walmart.png',
       fallbackImage: '/walmart.png'
     },
     {
       id: 'amazon',
       name: 'Amazon',
-      image: '/partners/amazon.svg',
+      image: '/partners/Amazon.png',
       fallbackImage: '/Amazon.png',
       link: 'https://www.amazon.com/stores/HERMEN/page/4ECE39BE-094C-4965-871F-0B093CB3E2F7?lp_asin=B0H9XLVHS3&ref_=ast_bln&store_ref=bl_ast_dp_brandlogo_sto'
     }
